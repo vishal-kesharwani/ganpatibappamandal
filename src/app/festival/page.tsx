@@ -170,11 +170,25 @@ export default function FestivalPage() {
           </div>
         </section>
 
-        <section className="mb-6">
-          <p className="text-sm leading-relaxed" style={{ color: "#57534E" }}>
-            {dayData.themeDescription}
-          </p>
-        </section>
+        {dayData.specialEvent && (
+          <section className="mb-4">
+            <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
+              <p className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-1">Special Event</p>
+              <p className="text-[#1C1917] text-sm font-bold font-gotu">{dayData.specialEvent}</p>
+              {dayData.specialEventTime && (
+                <p className="text-[#A8A29E] text-xs mt-1">{dayData.specialEventTime}</p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {dayData.description && (
+          <section className="mb-6">
+            <p className="text-sm leading-relaxed" style={{ color: "#57534E" }}>
+              {dayData.description}
+            </p>
+          </section>
+        )}
 
         {schedule && schedule.events.length > 0 && (
           <section className="mb-8">
@@ -237,13 +251,13 @@ export default function FestivalPage() {
             if (navigator.share) {
               navigator.share({
                 title: "OM SAI MITRA MANDAL",
-                text: `Day ${dayData.day} - ${dayData.theme}\n${dayData.dateMarathi}`,
+                text: `Day ${dayData.day} - ${dayData.dateMarathi}\n${dayData.dayOfWeek}`,
                 url: window.location.href,
               });
             } else {
               window.open(
                 `https://wa.me/?text=${encodeURIComponent(
-                  `Day ${dayData.day} - ${dayData.theme}\n${dayData.dateMarathi}\n${FESTIVAL_CONFIG.name}`
+                  `Day ${dayData.day} - ${dayData.dateMarathi}\n${dayData.dayOfWeek}\n${FESTIVAL_CONFIG.name}`
                 )}`,
                 "_blank"
               );

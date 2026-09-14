@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 export const metadata: Metadata = {
   title: "OM SAI MITRA MANDAL | Ganpati Festival 2026",
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-dvh flex flex-col text-[#1C1917] antialiased">
         <main className="flex-1 pb-20">{children}</main>
+        <WhatsAppFloat />
       </body>
     </html>
   );

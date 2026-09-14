@@ -521,7 +521,7 @@ export default function AdminPage() {
                   </label>
                   <input
                     type="tel"
-                    defaultValue={FESTIVAL_CONFIG.phone}
+                    defaultValue="+91XXXXXXXXXX"
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
                     style={{
                       backgroundColor: IVORY,
@@ -537,7 +537,7 @@ export default function AdminPage() {
                   </label>
                   <input
                     type="tel"
-                    defaultValue={FESTIVAL_CONFIG.whatsapp}
+                    defaultValue="+91XXXXXXXXXX"
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
                     style={{
                       backgroundColor: IVORY,

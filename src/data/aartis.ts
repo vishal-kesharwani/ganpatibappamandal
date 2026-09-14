@@ -19,19 +19,17 @@ export interface Aarti {
 }
 
 export const AARTI_CATEGORIES = [
-  { id: "ganpati", label: "गणपतीची आरती", labelEn: "Ganpati Aarti" },
-  { id: "sukhkarta", label: "सुखकर्ता दुःखहर्ता", labelEn: "Sukhkarta Dukhharta" },
-  { id: "jaydev", label: "जय देव जय देव", labelEn: "Jay Dev Jay Dev" },
-  { id: "ghalin", label: "घालीन लोटांगण", labelEn: "Ghalin Lotangan" },
-  { id: "mantra", label: "मंत्रपुष्पांजली", labelEn: "Mantra Pushpanjali" },
-  { id: "atharvashirsha", label: "गणपती अथर्वशीर्ष", labelEn: "Ganpati Atharvashirsha" },
-  { id: "sheja", label: "शेज आरती", labelEn: "Sheja Aarti" },
-  { id: "other", label: "इतर आरत्या", labelEn: "Other Aartis" },
-  { id: "vishnu", label: "विष्णु आरती", labelEn: "Vishnu Aarti" },
-  { id: "hanuman", label: "हनुमान आरती", labelEn: "Hanuman Aarti" },
-  { id: "devi", label: "देवी आरती", labelEn: "Devi Aarti" },
-  { id: "krishna", label: "कृष्ण आरती", labelEn: "Krishna Aarti" },
-  { id: "ram", label: "राम आरती", labelEn: "Ram Aarti" },
+  { id: "ganpati", label: "गणपती", labelEn: "Ganpati" },
+  { id: "shiva", label: "शिव", labelEn: "Shiva" },
+  { id: "devi", label: "देवी", labelEn: "Devi" },
+  { id: "vitthal", label: "विठ्ठल", labelEn: "Vitthal" },
+  { id: "hanuman", label: "हनुमान / मारुती", labelEn: "Hanuman / Maruti" },
+  { id: "krishna", label: "कृष्ण", labelEn: "Krishna" },
+  { id: "ram", label: "राम", labelEn: "Rama" },
+  { id: "vishnu", label: "विष्णु", labelEn: "Vishnu" },
+  { id: "mantra", label: "मंत्र", labelEn: "Mantra" },
+  { id: "stotra", label: "स्तोत्र", labelEn: "Stotra" },
+  { id: "prarthana", label: "प्रार्थना", labelEn: "Prarthana" },
 ];
 
 export const AARTIS: Aarti[] = [
@@ -42,10 +40,10 @@ export const AARTIS: Aarti[] = [
     titleMarathi: "सुखकर्ता दुःखहर्ता",
     titleHindi: "सुखकर्ता दुःखहर्ता",
     titleHinglish: "Sukhkarta Dukhharta",
-    category: "sukhkarta",
-    categoryMarathi: "सुखकर्ता दुःखहर्ता",
-    categoryHindi: "सुखकर्ता दुःखहर्ता",
-    categoryHinglish: "Sukhkarta Dukhharta",
+    category: "ganpati",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `सुखकर्ता दुःखहर्ता वारण विघ्नविनाशन ।
 मूर्ति चि तुझी पाहिली मना माझ्या अशा आनंदी ॥
 
@@ -108,10 +106,10 @@ Sarva mangal jhaalee survchaa bhaan ubhaaralee`,
     titleMarathi: "जय देव जय देव",
     titleHindi: "जय देव जय देव",
     titleHinglish: "Jay Dev Jay Dev",
-    category: "jaydev",
-    categoryMarathi: "जय देव जय देव",
-    categoryHindi: "जय देव जय देव",
-    categoryHinglish: "Jay Dev Jay Dev",
+    category: "ganpati",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `जय देव जय देव जय मंगलमूर्ती ।
 दर्शन मात्रे पापहर्ती पूर्ण करती कृती ॥
 
@@ -246,10 +244,10 @@ Darshan matre papaharti purn karti kruti`,
     titleMarathi: "घालीन लोटांगण",
     titleHindi: "घालीन लोटांगण",
     titleHinglish: "Ghalin Lotangan",
-    category: "ghalin",
-    categoryMarathi: "घालीन लोटांगण",
-    categoryHindi: "घालीन लोटांगण",
-    categoryHinglish: "Ghalin Lotangan",
+    category: "ganpati",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `घालीन लोटांगण वंदन चरण ।
 तुझे आहे माझ्या कुटुंबाचे पूर्ण ॥
 
@@ -346,9 +344,9 @@ Charanee tujhyaa kunkum laavle`,
     titleHindi: "मंत्र पुष्पांजलि",
     titleHinglish: "Mantra Pushpanjali",
     category: "mantra",
-    categoryMarathi: "मंत्रपुष्पांजली",
-    categoryHindi: "मंत्र पुष्पांजलि",
-    categoryHinglish: "Mantra Pushpanjali",
+    categoryMarathi: "मंत्र",
+    categoryHindi: "मंत्र",
+    categoryHinglish: "Mantra",
     lyrics: `ॐ असतो मा सद्गमय ।
 तमसो मा ज्योतिर्गमय ।
 मृत्योर्मा अमृतं गमय ।
@@ -405,10 +403,10 @@ Om Gam Ganapataye Namah`,
     titleMarathi: "शेज आरती",
     titleHindi: "शयन आरती",
     titleHinglish: "Sheja Aarti",
-    category: "sheja",
-    categoryMarathi: "शेज आरती",
-    categoryHindi: "शयन आरती",
-    categoryHinglish: "Sheja Aarti",
+    category: "ganpati",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `उभी राहिली आरती शेजीला ।
 गणपती बाप्पा झोपला शेजीला ॥
 
@@ -504,10 +502,10 @@ Tulsi Manjri Aani Kunkum Laavle`,
     titleMarathi: "गणपती अथर्वशीर्ष",
     titleHindi: "गणपति अथर्वशीर्ष",
     titleHinglish: "Ganpati Atharvashirsha",
-    category: "atharvashirsha",
-    categoryMarathi: "गणपती अथर्वशीर्ष",
-    categoryHindi: "गणपति अथर्वशीर्ष",
-    categoryHinglish: "Ganpati Atharvashirsha",
+    category: "mantra",
+    categoryMarathi: "मंत्र",
+    categoryHindi: "मंत्र",
+    categoryHinglish: "Mantra",
     lyrics: `ॐ नमस्ते गणपतये त्वमेव प्रत्यक्षं ब्रह्मासि ।
 त्वामेव प्रत्यक्षं विष्णुः त्वामेव प्रत्यक्षं रुद्रः प्रणोमि ॥
 
@@ -580,9 +578,9 @@ Nirvighnam Kuru Me Deva Sarvaaryeshu Sarvadaa`,
     titleHindi: "मंगलमूर्ति आरती",
     titleHinglish: "Mangal Murti Aarti",
     category: "ganpati",
-    categoryMarathi: "गणपतीची आरती",
-    categoryHindi: "गणपति की आरती",
-    categoryHinglish: "Ganpati Ki Aarti",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `जय गणेश जय गणेश जय गणेश देवा ।
 माता जाकी पार्वती पिता महादेवा ॥
 
@@ -633,10 +631,10 @@ Shaahane Tu Aahes Ganraajaa Ho Ganraajaa`,
     titleMarathi: "गणपती बाप्पा मोरया आरती",
     titleHindi: "गणपति बप्पा मोरया आरती",
     titleHinglish: "Ganpati Bappa Morya Aarti",
-    category: "other",
-    categoryMarathi: "इतर आरत्या",
-    categoryHindi: "अन्य आरतियाँ",
-    categoryHinglish: "Other Aartis",
+    category: "ganpati",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `गणपती बाप्पा मोरया ।
 मंगलमूर्ती मोरया ॥
 
@@ -687,10 +685,10 @@ Sarva Sankat Harta Dev`,
     titleMarathi: "रात्रिगृह आरती",
     titleHindi: "रात्रिगृह आरती",
     titleHinglish: "Ratrigriha Aarti",
-    category: "sheja",
-    categoryMarathi: "शेज आरती",
-    categoryHindi: "शयन आरती",
-    categoryHinglish: "Sheja Aarti",
+    category: "ganpati",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `आरती उभी राहिली ।
 शेजीला गणपती बाप्पा ।
 झोपला शेजीला ॥
@@ -745,9 +743,9 @@ Jhoplaa Shejilaa`,
     titleHindi: "श्री विष्णु आरती",
     titleHinglish: "Shri Vishnu Aarti",
     category: "vishnu",
-    categoryMarathi: "विष्णू आरती",
-    categoryHindi: "विष्णु आरती",
-    categoryHinglish: "Vishnu Aarti",
+    categoryMarathi: "विष्णु",
+    categoryHindi: "विष्णु",
+    categoryHinglish: "Vishnu",
     lyrics: `जय विष्णु भगवान
 जय विष्णु भगवान
 
@@ -838,9 +836,9 @@ Jai Vishnu Bhagwan`,
     titleHindi: "श्री गणेश आरती (हिंदी)",
     titleHinglish: "Shri Ganesh Aarti (Hindi)",
     category: "ganpati",
-    categoryMarathi: "गणपतीची आरती",
-    categoryHindi: "गणपती की आरती",
-    categoryHinglish: "Ganpati Aarti",
+    categoryMarathi: "गणपती",
+    categoryHindi: "गणपती",
+    categoryHinglish: "Ganpati",
     lyrics: `जय गणेश जय गणेश जय गणेश देवा
 माता जाकी पार्वती पिता महादेवा
 
@@ -913,9 +911,9 @@ Maa Jaki Parvati Pita Mahadeva`,
     titleHindi: "हनुमान आरती",
     titleHinglish: "Hanuman Aarti",
     category: "hanuman",
-    categoryMarathi: "हनुमान आरती",
-    categoryHindi: "हनुमान आरती",
-    categoryHinglish: "Hanuman Aarti",
+    categoryMarathi: "हनुमान",
+    categoryHindi: "हनुमान",
+    categoryHinglish: "Hanuman",
     lyrics: `आरती कीजै हनुमान लला की
 दुष्ट दलन रघुनाथ कला की
 
@@ -1015,9 +1013,9 @@ Dusht Dalan Ragunath Kala Ki`,
     titleHindi: "खाटू श्याम सुंदर आरती",
     titleHinglish: "Khatu Shyam Sundar Aarti",
     category: "krishna",
-    categoryMarathi: "कृष्ण आरती",
-    categoryHindi: "कृष्ण आरती",
-    categoryHinglish: "Krishna Aarti",
+    categoryMarathi: "कृष्ण",
+    categoryHindi: "कृष्ण",
+    categoryHinglish: "Krishna",
     lyrics: `जय श्री श्याम हरि
 जय श्री श्याम हरि
 
@@ -1111,9 +1109,9 @@ Jai Shri Shyam Hari`,
     titleHindi: "सरस्वती आरती",
     titleHinglish: "Saraswati Aarti",
     category: "devi",
-    categoryMarathi: "देवी आरती",
-    categoryHindi: "देवी आरती",
-    categoryHinglish: "Devi Aarti",
+    categoryMarathi: "देवी",
+    categoryHindi: "देवी",
+    categoryHinglish: "Devi",
     lyrics: `जय सरस्वती माता
 जय सरस्वती माता
 
@@ -1216,9 +1214,9 @@ Jai Saraswati Mata`,
     titleHindi: "लक्ष्मी आरती",
     titleHinglish: "Lakshmi Aarti",
     category: "devi",
-    categoryMarathi: "देवी आरती",
-    categoryHindi: "देवी आरती",
-    categoryHinglish: "Devi Aarti",
+    categoryMarathi: "देवी",
+    categoryHindi: "देवी",
+    categoryHinglish: "Devi",
     lyrics: `जय लक्ष्मी माता
 जय लक्ष्मी माता
 
@@ -1321,9 +1319,9 @@ Jai Lakshmi Mata`,
     titleHindi: "सत्यनारायण आरती",
     titleHinglish: "Satyanarayan Aarti",
     category: "vishnu",
-    categoryMarathi: "विष्णू आरती",
-    categoryHindi: "विष्णु आरती",
-    categoryHinglish: "Vishnu Aarti",
+    categoryMarathi: "विष्णु",
+    categoryHindi: "विष्णु",
+    categoryHinglish: "Vishnu",
     lyrics: `आरती सत्यनारायण देव की
 जो कोई नर गाए
 सुख संपत्ति मिल जाए
@@ -1405,9 +1403,9 @@ Sab Kasht Mit Jaaye`,
     titleHindi: "अंबे माता आरती",
     titleHinglish: "Ambe Mata Aarti",
     category: "devi",
-    categoryMarathi: "देवी आरती",
-    categoryHindi: "देवी आरती",
-    categoryHinglish: "Devi Aarti",
+    categoryMarathi: "देवी",
+    categoryHindi: "देवी",
+    categoryHinglish: "Devi",
     lyrics: `जय अंबे माता
 जय अंबे माता
 
@@ -1510,9 +1508,9 @@ Jai Ambe Mata`,
     titleHindi: "कुंज बिहारी आरती",
     titleHinglish: "Kunj Bihari Aarti",
     category: "krishna",
-    categoryMarathi: "कृष्ण आरती",
-    categoryHindi: "कृष्ण आरती",
-    categoryHinglish: "Krishna Aarti",
+    categoryMarathi: "कृष्ण",
+    categoryHindi: "कृष्ण",
+    categoryHinglish: "Krishna",
     lyrics: `आरती कुंज बिहारी की
 राधा रमण वर विहारी की
 स्वामी के मन भावे
@@ -1591,9 +1589,9 @@ Radha Raman Var Vihari Ki`,
     titleHindi: "संतोषी माता आरती",
     titleHinglish: "Santoshi Mata Aarti",
     category: "devi",
-    categoryMarathi: "देवी आरती",
-    categoryHindi: "देवी आरती",
-    categoryHinglish: "Devi Aarti",
+    categoryMarathi: "देवी",
+    categoryHindi: "देवी",
+    categoryHinglish: "Devi",
     lyrics: `जय संतोषी माता
 जय संतोषी माता
 
@@ -1696,9 +1694,9 @@ Jai Santoshi Mata`,
     titleHindi: "रामचंद्र आरती",
     titleHinglish: "Ramchandra Aarti",
     category: "ram",
-    categoryMarathi: "राम आरती",
-    categoryHindi: "राम आरती",
-    categoryHinglish: "Ram Aarti",
+    categoryMarathi: "राम",
+    categoryHindi: "राम",
+    categoryHinglish: "Rama",
     lyrics: `आरती श्री रामचंद्र की
 जो कोई नर गाए
 सुख संपत्ति मिल जाए

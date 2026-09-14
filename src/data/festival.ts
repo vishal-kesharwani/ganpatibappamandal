@@ -9,10 +9,8 @@ export const FESTIVAL_CONFIG = {
   mantras: ["श्री गणेशाय नमः", "गणपती बाप्पा मोरया!"],
   marathiFestivalName: "गणेशोत्सव २०२६",
   dateRangeMarathi: "१४ सप्टेंबर — २० सप्टेंबर",
-  whatsapp: "+91XXXXXXXXXX",
   upiId: "omsaimitramandal@upi",
-  phone: "+91XXXXXXXXXX",
-  address: "Triveni Sangam Apartment, Bhiwandi, Maharashtra",
+  address: "Triveni Sangam Apartment, Kaneri, Bhiwandi, Maharashtra 421302",
   mapUrl: "https://maps.app.goo.gl/k1WtrcRubSinUwau5",
   instagram: "https://www.instagram.com/omsaimitramandalbhiwandi/",
 };
@@ -23,12 +21,11 @@ export interface FestivalDay {
   dayOfWeek: string;
   dateMarathi: string;
   dayOfWeekMarathi: string;
-  theme: string;
-  themeDescription: string;
-  specialAttraction: string;
-  dressCode: string;
-  specialAarti: string;
-  highlights: string[];
+  theme?: string;
+  themeDescription?: string;
+  specialEvent?: string;
+  specialEventTime?: string;
+  description?: string;
 }
 
 export const FESTIVAL_DAYS: FestivalDay[] = [
@@ -38,12 +35,9 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Monday",
     dateMarathi: "१४ सप्टेंबर २०२६",
     dayOfWeekMarathi: "सोमवार",
-    theme: "राजेशाही गणपती",
-    themeDescription: "आजच्या सजावटीची संकल्पना राजेशाही आणि भव्य गणपतीवर आधारित आहे. मंडपात रंगबिरंगी फुलं आणि दिव्यांची सजावट केली आहे.",
-    specialAttraction: "विशेष गणपती स्थापना समारंभ",
-    dressCode: "पारंपरिक वेशभूषा",
-    specialAarti: "महाआरती",
-    highlights: ["गणपती स्थापना", "काकड आरती", "मोदक प्रसाद"],
+    specialEvent: "गणपती स्थापना समारंभ",
+    specialEventTime: "10:00 AM",
+    description: "गणपती बाप्पाची स्थापना आणि काकड आरती.",
   },
   {
     day: 2,
@@ -51,12 +45,7 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Tuesday",
     dateMarathi: "१५ सप्टेंबर २०२६",
     dayOfWeekMarathi: "मंगळवार",
-    theme: "शेतकरी गणपती",
-    themeDescription: "गावी शेतकऱ्यांच्या जीवनावर आधारित सजावट. शेतीतील विविध वनस्पती आणि उपकरणांची सजावट.",
-    specialAttraction: "शेतकरी सन्मान समारंभ",
-    dressCode: "शेतकरी पोशाख",
-    specialAarti: "विशेष आरती",
-    highlights: ["शेतकरी सन्मान", "लोकगीत", "शेती उपकरणे"],
+    description: "दैनिक पूजा आणि आरती.",
   },
   {
     day: 3,
@@ -64,12 +53,9 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Wednesday",
     dateMarathi: "१६ सप्टेंबर २०२६",
     dayOfWeekMarathi: "बुधवार",
-    theme: "बाल गणपती",
-    themeDescription: "मुलांसाठी विशेष सजावट. रंगीबेरंगी बेलून, चित्रं आणि मुलांच्या खेळांचा आयोजन.",
-    specialAttraction: "बाल स्पर्धा आणि खेळ",
-    dressCode: "रंगीबेरंगी वेशभूषा",
-    specialAarti: "बाल आरती",
-    highlights: ["बाल स्पर्धा", "चित्र स्पर्धा", "खेळ"],
+    specialEvent: "बाल स्पर्धा आणि खेळ",
+    specialEventTime: "4:00 PM",
+    description: "मुलांसाठी विशेष कार्यक्रम.",
   },
   {
     day: 4,
@@ -77,12 +63,9 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Thursday",
     dateMarathi: "१७ सप्टेंबर २०२६",
     dayOfWeekMarathi: "गुरुवार",
-    theme: "सांस्कृतिक गणपती",
-    themeDescription: "महाराष्ट्रीय संस्कृतीवर आधारित सजावट. लोकनृत्य, लोकगीत आणि पारंपरिक कार्यक्रम.",
-    specialAttraction: "लोकनृत्य स्पर्धा",
-    dressCode: "पारंपरिक नागरी पोशाख",
-    specialAarti: "विशेष सांस्कृतिक आरती",
-    highlights: ["लोकनृत्य", "भजन", "पारंपरिक संगीत"],
+    specialEvent: "लोकनृत्य स्पर्धा",
+    specialEventTime: "6:00 PM",
+    description: "सांस्कृतिक कार्यक्रम.",
   },
   {
     day: 5,
@@ -90,12 +73,9 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Friday",
     dateMarathi: "१८ सप्टेंबर २०२६",
     dayOfWeekMarathi: "शुक्रवार",
-    theme: "सामाजिक गणपती",
-    themeDescription: "समाजसेवेवर आधारित कार्यक्रम. रक्तदान शिबिर, निदान शिबिर आणि सामाजिक उपक्रम.",
-    specialAttraction: "रक्तदान शिबिर",
-    dressCode: "सादर वेशभूषा",
-    specialAarti: "विशेष प्रार्थना आरती",
-    highlights: ["रक्तदान शिबिर", "निदान शिबिर", "सामाजिक उपक्रम"],
+    specialEvent: "रक्तदान शिबिर",
+    specialEventTime: "10:00 AM",
+    description: "सामाजिक उपक्रम.",
   },
   {
     day: 6,
@@ -103,12 +83,9 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Saturday",
     dateMarathi: "१९ सप्टेंबर २०२६",
     dayOfWeekMarathi: "शनिवार",
-    theme: "दिंडी गणपती",
-    themeDescription: "ढोल-ताशा आणि दिंडीच्या सजावटीवर भर. उत्साहाचे वातावरण.",
-    specialAttraction: "दिंडी आणि ढोल-ताशा",
-    dressCode: "ताशाच्या रंगात",
-    specialAarti: "दिंडी आरती",
-    highlights: ["दिंडी", "ढोल-ताशा", "नाचगाणा"],
+    specialEvent: "दिंडी आणि ढोल-ताशा",
+    specialEventTime: "4:00 PM",
+    description: "उत्साहाचे वातावरण.",
   },
   {
     day: 7,
@@ -116,11 +93,8 @@ export const FESTIVAL_DAYS: FestivalDay[] = [
     dayOfWeek: "Sunday",
     dateMarathi: "२० सप्टेंबर २०२६",
     dayOfWeekMarathi: "रविवार",
-    theme: "विसर्जन दिवस",
-    themeDescription: "विसर्जनाच्या दिवशी गणपती बाप्पाला विदाई दिली जाते. मिरवणूकसह विसर्जन कार्यक्रम.",
-    specialAttraction: "विसर्जन मिरवणूक",
-    dressCode: "पारंपरिक वेशभूषा",
-    specialAarti: "विदाई आरती",
-    highlights: ["विसर्जन मिरवणूक", "विदाई आरती", "महाप्रसाद"],
+    specialEvent: "विसर्जन मिरवणूक",
+    specialEventTime: "11:00 AM",
+    description: "विसर्जनाच्या दिवशी गणपती बाप्पाला विदाई.",
   },
 ];
