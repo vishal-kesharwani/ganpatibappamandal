@@ -36,7 +36,10 @@ export default function AartiPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen pb-24" style={{ backgroundColor: "#FAF7F2" }}>
+      <main className="min-h-screen pb-24" style={{ background: "linear-gradient(180deg, #FFF8F0 0%, #FFFBF5 40%, #F5EDE0 100%)" }}>
+        {/* Decorative maroon accent bar */}
+        <div className="w-full h-1.5 bg-[#7C2D12]" />
+
         <div className="max-w-lg mx-auto px-4 py-6">
 
           {/* Title */}
@@ -44,7 +47,7 @@ export default function AartiPage() {
             <h1 className="text-2xl font-gotu font-bold" style={{ color: "#1C1917" }}>
               Aarti Sangrahalaya
             </h1>
-            <p className="text-xs mt-1 font-gotu" style={{ color: "#A8A29E" }}>
+            <p className="text-xs mt-1 font-gotu" style={{ color: "#78716C" }}>
               आरती संग्रह
             </p>
           </div>
@@ -57,7 +60,7 @@ export default function AartiPage() {
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
-                stroke="#A8A29E"
+                stroke="#78716C"
               >
                 <path
                   strokeLinecap="round"
@@ -70,14 +73,14 @@ export default function AartiPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search aartis..."
-                className="w-full bg-white border border-[#E7E5E4] rounded-lg pl-10 pr-4 py-2.5 text-sm text-[#1C1917] placeholder:text-[#A8A29E] outline-none transition-colors focus:border-[#EA580C]"
+                className="w-full bg-[#FFFBF5] border-2 border-[#D6D3D1] rounded-lg pl-10 pr-4 py-2.5 text-sm text-[#44403C] placeholder:text-[#78716C] outline-none transition-colors focus:border-[#EA580C]"
               />
             </div>
           </div>
 
           {/* Language Filter Chips */}
           <div className="mb-3">
-            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#A8A29E" }}>
+            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#78716C" }}>
               Language
             </p>
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -90,8 +93,8 @@ export default function AartiPage() {
                     onClick={() => setActiveLanguage(lang)}
                     className={`shrink-0 rounded-full px-4 py-1.5 text-xs transition-colors whitespace-nowrap ${
                       isActive
-                        ? "bg-[#7C2D12] text-white"
-                        : "bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]"
+                        ? "bg-[#7C2D12] text-white font-medium"
+                        : "bg-[#E7E5E4] border border-[#D6D3D1] text-[#1C1917] font-medium"
                     }`}
                   >
                     {label}
@@ -103,7 +106,7 @@ export default function AartiPage() {
 
           {/* Category Filter Chips */}
           <div className="mb-3">
-            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#A8A29E" }}>
+            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#78716C" }}>
               Deity
             </p>
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -116,8 +119,8 @@ export default function AartiPage() {
                     onClick={() => setActiveCategory(cat)}
                     className={`shrink-0 rounded-full px-4 py-1.5 text-xs transition-colors whitespace-nowrap ${
                       isActive
-                        ? "bg-[#7C2D12] text-white"
-                        : "bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]"
+                        ? "bg-[#7C2D12] text-white font-medium"
+                        : "bg-[#E7E5E4] border border-[#D6D3D1] text-[#1C1917] font-medium"
                     }`}
                   >
                     {label}
@@ -129,7 +132,7 @@ export default function AartiPage() {
 
           {/* Type Filter Chips */}
           <div className="mb-5">
-            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#A8A29E" }}>
+            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#78716C" }}>
               Type
             </p>
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
@@ -142,8 +145,8 @@ export default function AartiPage() {
                     onClick={() => setActiveType(typ)}
                     className={`shrink-0 rounded-full px-4 py-1.5 text-xs transition-colors whitespace-nowrap ${
                       isActive
-                        ? "bg-[#7C2D12] text-white"
-                        : "bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]"
+                        ? "bg-[#7C2D12] text-white font-medium"
+                        : "bg-[#E7E5E4] border border-[#D6D3D1] text-[#1C1917] font-medium"
                     }`}
                   >
                     {label}
@@ -154,7 +157,7 @@ export default function AartiPage() {
           </div>
 
           {/* Results Count */}
-          <p className="text-xs mb-4" style={{ color: "#A8A29E" }}>
+          <p className="text-xs mb-4" style={{ color: "#78716C" }}>
             Showing {filtered.length} of {publishedAartis.length} aartis
           </p>
 
@@ -162,7 +165,7 @@ export default function AartiPage() {
           <div className="space-y-3">
             {filtered.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-sm" style={{ color: "#57534E" }}>
+                <p className="text-sm" style={{ color: "#44403C" }}>
                   No aartis found matching your filters
                 </p>
               </div>
@@ -172,30 +175,30 @@ export default function AartiPage() {
               <Link
                 key={aarti.id}
                 href={`/aarti/${aarti.slug}`}
-                className="block bg-white border border-[#E7E5E4] rounded-lg p-4 transition-colors hover:border-[#EA580C]/30"
+                className="block bg-[#FFFBF5] border border-[#D6D3D1] rounded-lg p-4 transition-colors hover:border-[#EA580C]/50 hover:bg-[#FFF8F0]"
               >
-                <p className="text-sm font-bold font-gotu" style={{ color: "#1C1917" }}>
+                <p className="text-sm font-bold font-gotu" style={{ color: "#44403C" }}>
                   {aarti.title}
                 </p>
 
                 {aarti.titleDevanagari && aarti.titleDevanagari !== aarti.title && (
-                  <p className="text-xs mt-0.5" style={{ color: "#57534E" }}>
+                  <p className="text-xs mt-0.5" style={{ color: "#44403C" }}>
                     {aarti.titleDevanagari}
                   </p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="bg-[#FEF3C7] text-[#92400E] text-[10px] rounded-full px-2 py-0.5">
+                  <span className="bg-[#7C2D12] text-white text-[10px] rounded-full px-2 py-0.5 font-medium">
                     {aarti.deity}
                   </span>
-                  <span className="bg-[#F5F0E8] text-[#57534E] text-[10px] rounded-full px-2 py-0.5">
+                  <span className="bg-[#FDE68A] text-[#78350F] text-[10px] rounded-full px-2 py-0.5 font-medium">
                     {AARTI_LANGUAGES.find((l) => l.id === aarti.language)?.labelEn ?? aarti.language}
                   </span>
-                  <span className="bg-[#ECFDF5] text-[#065F46] text-[10px] rounded-full px-2 py-0.5">
+                  <span className="bg-[#E7E5E4] text-[#1C1917] text-[10px] rounded-full px-2 py-0.5 font-medium">
                     {AARTI_TYPES.find((t) => t.id === aarti.type)?.labelEn ?? aarti.type}
                   </span>
                   {aarti.verified && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] text-[#059669]">
+                    <span className="inline-flex items-center gap-0.5 text-[10px] text-[#047857] font-medium">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
@@ -215,7 +218,7 @@ export default function AartiPage() {
           <div className="mt-8 text-center">
             <Link
               href="/aarti/timings"
-              className="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white transition-colors bg-[#7C2D12] hover:bg-[#6B2710]"
+              className="inline-flex items-center gap-2 rounded-lg px-8 py-4 text-base font-bold text-white transition-colors bg-[#7C2D12] hover:bg-[#6B2710] shadow-lg shadow-[#7C2D12]/30"
             >
               Aarti Timings
             </Link>

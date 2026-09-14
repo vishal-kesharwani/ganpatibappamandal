@@ -83,13 +83,13 @@ export default function AartiDetailPage() {
 
   if (!aarti) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F5EDE0] flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-[#57534E] text-lg font-gotu">आरती सापडली नाही</p>
-          <p className="text-[#A8A29E] text-sm mt-1">Aarti not found</p>
+          <p className="text-[#44403C] text-lg font-gotu">आरती सापडली नाही</p>
+          <p className="text-[#78716C] text-sm mt-1">Aarti not found</p>
           <Link
             href="/aarti"
-            className="text-[#7C2D12] text-sm mt-6 inline-flex items-center gap-1 hover:underline"
+            className="text-[#7C2D12] text-sm mt-6 inline-flex items-center gap-1 hover:underline font-medium"
           >
             <svg
               className="w-4 h-4"
@@ -136,21 +136,24 @@ export default function AartiDetailPage() {
   const fontClass = isHinglish ? "font-sans" : "font-gotu";
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2]">
+    <div className="min-h-screen bg-[#F5EDE0] bg-gradient-to-b from-[#F5EDE0] via-[#EDE7DB] to-[#F5EDE0]">
+      {/* Maroon Accent Strip at Top of Content Area */}
+      <div className="h-1.5 bg-[#7C2D12] w-full" />
+
       {/* Scroll Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-[2px] bg-transparent">
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-[#7C2D12]/20">
         <div
           className="h-full bg-[#EA580C] transition-[width] duration-150 ease-out"
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
 
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-[#FAF7F2] border-b border-[#E7E5E4]">
+      {/* Sticky Header - Maroon */}
+      <div className="sticky top-0 z-40 bg-[#7C2D12] border-b border-[#7C2D12]/80">
         <div className="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
           <Link
             href="/aarti"
-            className="text-[#57534E] text-sm flex items-center gap-1 hover:text-[#1C1917] transition-colors"
+            className="text-[#FAF7F2] text-sm flex items-center gap-1 hover:text-[#F5EDE0] transition-colors"
           >
             <svg
               className="w-4 h-4"
@@ -167,15 +170,15 @@ export default function AartiDetailPage() {
             </svg>
             Back
           </Link>
-          <h1 className="text-sm font-bold font-gotu text-[#1C1917] truncate max-w-[200px]">
+          <h1 className="text-sm font-bold font-gotu text-white truncate max-w-[200px]">
             {getTitle()}
           </h1>
           <div className="w-16" />
         </div>
       </div>
 
-      {/* Controls Bar */}
-      <div className="sticky top-[49px] z-30 bg-[#FAF7F2] border-b border-[#E7E5E4]">
+      {/* Controls Bar - Maroon Background */}
+      <div className="sticky top-[49px] z-30 bg-[#7C2D12] border-b border-[#7C2D12]/80">
         <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
           {/* Language Toggle */}
           <div className="flex items-center justify-center gap-2">
@@ -188,10 +191,10 @@ export default function AartiDetailPage() {
                   disabled={disabled}
                   className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                     disabled
-                      ? "bg-[#F5F0E8] border border-[#E7E5E4] text-[#D6D3D1] cursor-not-allowed opacity-50"
+                      ? "bg-[#7C2D12]/40 border border-[#7C2D12]/30 text-[#FAF7F2]/50 cursor-not-allowed opacity-50"
                       : language === lang
-                        ? "bg-[#7C2D12] text-white shadow-sm"
-                        : "bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E] hover:border-[#B45309] hover:text-[#7C2D12]"
+                        ? "bg-[#7C2D12] text-white shadow-sm border border-[#7C2D12]/50"
+                        : "bg-[#1C1917] text-[#FAF7F2] border border-[#1C1917]/50 hover:bg-[#292524] hover:border-[#7C2D12]/50 hover:text-[#FAF7F2]"
                   }`}
                 >
                   {LANG_LABELS[lang]}
@@ -205,16 +208,16 @@ export default function AartiDetailPage() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setFontSize(Math.max(16, fontSize - 2))}
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold bg-[#F5F0E8] border border-[#E7E5E4] text-[#1C1917] hover:border-[#B45309] hover:text-[#7C2D12] transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold bg-[#1C1917] text-[#FAF7F2] border border-[#1C1917]/50 hover:bg-[#292524] hover:text-[#FAF7F2] hover:border-[#B45309] transition-colors"
               >
                 A−
               </button>
-              <span className="text-[10px] w-8 text-center text-[#A8A29E] tabular-nums">
+              <span className="text-[10px] w-8 text-center text-[#78716C] tabular-nums">
                 {fontSize}
               </span>
               <button
                 onClick={() => setFontSize(Math.min(36, fontSize + 2))}
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold bg-[#F5F0E8] border border-[#E7E5E4] text-[#1C1917] hover:border-[#B45309] hover:text-[#7C2D12] transition-colors"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold bg-[#1C1917] text-[#FAF7F2] border border-[#1C1917]/50 hover:bg-[#292524] hover:text-[#FAF7F2] hover:border-[#B45309] transition-colors"
               >
                 A+
               </button>
@@ -228,7 +231,7 @@ export default function AartiDetailPage() {
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 isReading
                   ? "bg-[#991B1B] text-white shadow-sm"
-                  : "bg-[#7C2D12] text-white hover:bg-[#6B2113] shadow-sm"
+                  : "bg-[#7C2D12] text-white hover:bg-[#6B2113] shadow-sm border border-[#7C2D12]/50"
               }`}
             >
               {isReading ? "Stop Reading" : "Read Mode"}
@@ -239,11 +242,11 @@ export default function AartiDetailPage() {
 
       {/* Aarti Content */}
       <div className="max-w-lg mx-auto px-6 py-10 pb-28">
-        {/* Decorative Divider */}
+        {/* Decorative Divider - Maroon */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="flex-1 h-px bg-[#E7E5E4]" />
-          <span className="text-[#A8A29E] text-xs">✦</span>
-          <div className="flex-1 h-px bg-[#E7E5E4]" />
+          <div className="flex-1 h-px bg-[#7C2D12]" />
+          <span className="text-[#7C2D12] text-xs">✦</span>
+          <div className="flex-1 h-px bg-[#7C2D12]" />
         </div>
 
         {/* Title */}
@@ -258,22 +261,22 @@ export default function AartiDetailPage() {
 
         {/* Metadata Badges */}
         <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#7C2D12] text-white">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#7C2D12] text-white shadow-sm">
             {aarti.deity}
           </span>
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#1C1917] text-[#FAF7F2]">
             {aarti.language}
           </span>
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#1C1917] text-[#FAF7F2]">
             {TYPE_BADGES[aarti.type] || aarti.type}
           </span>
         </div>
 
-        {/* Verified Badge */}
+        {/* Verified Badge - Green */}
         {aarti.verified && (
           <div className="flex items-center justify-center gap-1.5 mb-4">
             <svg
-              className="w-4 h-4 text-[#16A34A]"
+              className="w-4 h-4 text-[#065F46]"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -283,7 +286,7 @@ export default function AartiDetailPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-xs text-[#16A34A] font-medium">Verified Source</span>
+            <span className="text-xs text-[#065F46] font-medium bg-[#065F46]/10 px-2 py-0.5 rounded-full">Verified Source</span>
           </div>
         )}
 
@@ -294,29 +297,29 @@ export default function AartiDetailPage() {
               href={aarti.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-[#A8A29E] hover:text-[#7C2D12] transition-colors underline underline-offset-2"
+              className="text-xs text-[#7C2D12] font-medium hover:underline hover:text-[#6B2113] transition-colors underline-offset-2"
             >
               {aarti.source}
             </a>
           ) : (
-            <span className="text-xs text-[#A8A29E]">{aarti.source}</span>
+            <span className="text-xs text-[#78716C] font-medium">{aarti.source}</span>
           )}
         </div>
 
-        {/* Description */}
+        {/* Description - Warm white card */}
         {aarti.description && (
-          <div className="mb-8 p-4 bg-white border border-[#E7E5E4] rounded-lg">
-            <p className={`text-sm ${fontClass} leading-relaxed text-[#57534E]`}>
+          <div className="mb-8 p-5 bg-[#FFFBF5] border border-[#D6D3D1] rounded-lg shadow-sm">
+            <p className={`text-sm ${fontClass} leading-relaxed text-[#44403C]`}>
               {aarti.description}
             </p>
           </div>
         )}
 
-        {/* Decorative Divider */}
+        {/* Decorative Divider - Maroon */}
         <div className="flex items-center gap-3 my-10">
-          <div className="flex-1 h-px bg-[#E7E5E4]" />
-          <span className="text-[#A8A29E] text-xs">✦</span>
-          <div className="flex-1 h-px bg-[#E7E5E4]" />
+          <div className="flex-1 h-px bg-[#7C2D12]" />
+          <span className="text-[#7C2D12] text-xs">✦</span>
+          <div className="flex-1 h-px bg-[#7C2D12]" />
         </div>
 
         {/* Lyrics */}
@@ -330,25 +333,25 @@ export default function AartiDetailPage() {
           {getLyrics()}
         </div>
 
-        {/* Closing Divider */}
+        {/* Closing Divider - Maroon */}
         <div className="flex items-center gap-3 my-12">
-          <div className="flex-1 h-px bg-[#E7E5E4]" />
-          <span className="text-[#A8A29E] text-xs">✦</span>
-          <div className="flex-1 h-px bg-[#E7E5E4]" />
+          <div className="flex-1 h-px bg-[#7C2D12]" />
+          <span className="text-[#7C2D12] text-xs">✦</span>
+          <div className="flex-1 h-px bg-[#7C2D12]" />
         </div>
 
         {/* Closing Mantra */}
         <div className="text-center mb-8">
-          <p className="text-xl font-bold font-gotu text-[#B45309]">
+          <p className="text-xl font-bold font-gotu text-[#7C2D12]">
             🙏 गणपती बाप्पा मोरया! 🙏
           </p>
         </div>
 
-        {/* Share Buttons */}
+        {/* Share Buttons - More Prominent */}
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => shareText(getShareText())}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E] hover:border-[#B45309] hover:text-[#7C2D12] transition-colors text-sm"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#1C1917] text-[#FAF7F2] hover:bg-[#292524] transition-colors text-sm font-medium border border-[#1C1917]/30 shadow-sm"
           >
             <svg
               className="w-4 h-4"
@@ -367,7 +370,7 @@ export default function AartiDetailPage() {
           </button>
           <button
             onClick={() => shareToWhatsApp(getShareText())}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#16A34A] text-white hover:bg-[#15803D] transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#25D366] text-white hover:bg-[#20C45A] transition-colors text-sm font-bold shadow-sm"
           >
             <svg
               className="w-4 h-4"
@@ -383,14 +386,14 @@ export default function AartiDetailPage() {
 
       {/* Bottom CTA */}
       {!isReading && (
-        <div className="fixed bottom-[60px] left-0 right-0 z-40 p-4 bg-gradient-to-t from-[#FAF7F2] via-[#FAF7F2] to-transparent pointer-events-none">
+        <div className="fixed bottom-[60px] left-0 right-0 z-40 p-4 bg-gradient-to-t from-[#F5EDE0] via-[#F5EDE0] to-transparent pointer-events-none">
           <div className="max-w-lg mx-auto pointer-events-auto">
             <button
               onClick={() => {
                 setIsReading(true);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="w-full py-3.5 rounded-lg bg-[#7C2D12] text-white font-bold font-gotu text-sm hover:bg-[#6B2113] transition-colors"
+              className="w-full py-4 rounded-lg bg-[#7C2D12] text-white font-bold font-gotu text-lg hover:bg-[#6B2113] transition-colors shadow-md"
             >
               Start Reading
             </button>
