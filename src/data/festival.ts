@@ -13,7 +13,7 @@ export const FESTIVAL_CONFIG = {
   upiId: "omsaimitramandal@upi",
   phone: "+91XXXXXXXXXX",
   address: "Triveni Sangam Apartment, Bhiwandi, Maharashtra",
-  mapUrl: "https://maps.google.com/?q=Triveni+Sangam+Apartment+Bhiwandi",
+  mapUrl: "https://maps.app.goo.gl/k1WtrcRubSinUwau5",
   instagram: "https://www.instagram.com/omsaimitramandalbhiwandi/",
 };
 
