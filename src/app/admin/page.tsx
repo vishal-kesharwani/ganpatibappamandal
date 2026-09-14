@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/lib/supabase";
 import { FESTIVAL_CONFIG, FESTIVAL_DAYS } from "@/data/festival";
-import { DAILY_SCHEDULES } from "@/data/schedule";
-import { ANNOUNCEMENTS } from "@/data/announcements";
 
 type Tab = "overview" | "days" | "aarti" | "events" | "notices" | "settings";
 
@@ -37,14 +36,41 @@ interface AartiRow {
   created_at: string;
 }
 
+interface ScheduleEvent {
+  id: number;
+  day: number;
+  time: string;
+  time_end: string | null;
+  title: string;
+  title_marathi: string;
+  category: string;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+interface Announcement {
+  id: number;
+  title: string;
+  title_marathi: string;
+  description: string;
+  description_marathi: string;
+  priority: string;
+  active: boolean;
+  created_at: string;
+}
+
 export default function AdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [aartis, setAartis] = useState<AartiRow[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [showAartiForm, setShowAartiForm] = useState(false);
+  const [editingAartiId, setEditingAartiId] = useState<number | null>(null);
+  const [aartiFormData, setAartiFormData] = useState({
     slug: "",
     title: "",
     title_devanagari: "",
@@ -62,6 +88,28 @@ export default function AdminPage() {
     published: false,
     sort_order: 0,
   });
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+  const [eventFormData, setEventFormData] = useState({
+    day: 1,
+    time: "",
+    time_end: "",
+    title: "",
+    title_marathi: "",
+    category: "aarti",
+    description: "",
+    sort_order: 0,
+  });
+  const [showNoticeForm, setShowNoticeForm] = useState(false);
+  const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
+  const [noticeFormData, setNoticeFormData] = useState({
+    title: "",
+    title_marathi: "",
+    description: "",
+    description_marathi: "",
+    priority: "general",
+    active: true,
+  });
 
   const handleLogin = () => {
     if (password === "ganpati2026") {
@@ -71,9 +119,21 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword("");
+    router.push("/");
+  };
+
   useEffect(() => {
-    if (isAuthenticated && activeTab === "aarti") {
+    if (!isAuthenticated) return;
+    if (activeTab === "aarti") fetchAartis();
+    if (activeTab === "events") fetchEvents();
+    if (activeTab === "notices") fetchAnnouncements();
+    if (activeTab === "overview") {
       fetchAartis();
+      fetchEvents();
+      fetchAnnouncements();
     }
   }, [isAuthenticated, activeTab]);
 
@@ -82,55 +142,52 @@ export default function AdminPage() {
       .from("aartis")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error && data) {
-      setAartis(data);
-    }
+    if (!error && data) setAartis(data);
+  };
+
+  const fetchEvents = async () => {
+    const { data, error } = await supabase
+      .from("schedule_events")
+      .select("*")
+      .order("day", { ascending: true })
+      .order("sort_order", { ascending: true });
+    if (!error && data) setEvents(data);
+  };
+
+  const fetchAnnouncements = async () => {
+    const { data, error } = await supabase
+      .from("announcements")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error && data) setAnnouncements(data);
   };
 
   const handleAddAarti = async () => {
-    const { error } = await supabase.from("aartis").insert([formData]);
+    const { error } = await supabase.from("aartis").insert([aartiFormData]);
     if (!error) {
-      setShowForm(false);
-      setFormData({
-        slug: "",
-        title: "",
-        title_devanagari: "",
-        deity: "",
-        category: "",
-        language: "",
-        type: "",
-        lyrics: "",
-        transliteration: "",
-        description: "",
-        source: "",
-        source_url: "",
-        content_status: "verified",
-        verified: false,
-        published: false,
-        sort_order: 0,
-      });
+      setShowAartiForm(false);
+      resetAartiForm();
       fetchAartis();
     }
   };
 
   const handleUpdateAarti = async () => {
-    if (editingId === null) return;
+    if (editingAartiId === null) return;
     const { error } = await supabase
       .from("aartis")
-      .update(formData)
-      .eq("id", editingId);
+      .update(aartiFormData)
+      .eq("id", editingAartiId);
     if (!error) {
-      setEditingId(null);
-      setShowForm(false);
+      setEditingAartiId(null);
+      setShowAartiForm(false);
       fetchAartis();
     }
   };
 
   const handleDeleteAarti = async (id: number) => {
+    if (!confirm("Delete this aarti?")) return;
     const { error } = await supabase.from("aartis").delete().eq("id", id);
-    if (!error) {
-      fetchAartis();
-    }
+    if (!error) fetchAartis();
   };
 
   const handleTogglePublished = async (id: number, published: boolean) => {
@@ -138,9 +195,7 @@ export default function AdminPage() {
       .from("aartis")
       .update({ published })
       .eq("id", id);
-    if (!error) {
-      fetchAartis();
-    }
+    if (!error) fetchAartis();
   };
 
   const handleToggleVerified = async (id: number, verified: boolean) => {
@@ -148,14 +203,12 @@ export default function AdminPage() {
       .from("aartis")
       .update({ verified })
       .eq("id", id);
-    if (!error) {
-      fetchAartis();
-    }
+    if (!error) fetchAartis();
   };
 
-  const handleEdit = (aarti: AartiRow) => {
-    setEditingId(aarti.id);
-    setFormData({
+  const handleEditAarti = (aarti: AartiRow) => {
+    setEditingAartiId(aarti.id);
+    setAartiFormData({
       slug: aarti.slug,
       title: aarti.title,
       title_devanagari: aarti.title_devanagari,
@@ -173,13 +226,13 @@ export default function AdminPage() {
       published: aarti.published,
       sort_order: aarti.sort_order,
     });
-    setShowForm(true);
+    setShowAartiForm(true);
   };
 
-  const resetForm = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setFormData({
+  const resetAartiForm = () => {
+    setShowAartiForm(false);
+    setEditingAartiId(null);
+    setAartiFormData({
       slug: "",
       title: "",
       title_devanagari: "",
@@ -196,6 +249,126 @@ export default function AdminPage() {
       verified: false,
       published: false,
       sort_order: 0,
+    });
+  };
+
+  const handleAddEvent = async () => {
+    const { error } = await supabase.from("schedule_events").insert([eventFormData]);
+    if (!error) {
+      setShowEventForm(false);
+      resetEventForm();
+      fetchEvents();
+    }
+  };
+
+  const handleUpdateEvent = async () => {
+    if (editingEventId === null) return;
+    const { error } = await supabase
+      .from("schedule_events")
+      .update(eventFormData)
+      .eq("id", editingEventId);
+    if (!error) {
+      setEditingEventId(null);
+      setShowEventForm(false);
+      fetchEvents();
+    }
+  };
+
+  const handleDeleteEvent = async (id: number) => {
+    if (!confirm("Delete this event?")) return;
+    const { error } = await supabase.from("schedule_events").delete().eq("id", id);
+    if (!error) fetchEvents();
+  };
+
+  const handleEditEvent = (event: ScheduleEvent) => {
+    setEditingEventId(event.id);
+    setEventFormData({
+      day: event.day,
+      time: event.time,
+      time_end: event.time_end || "",
+      title: event.title,
+      title_marathi: event.title_marathi,
+      category: event.category,
+      description: event.description || "",
+      sort_order: event.sort_order,
+    });
+    setShowEventForm(true);
+  };
+
+  const resetEventForm = () => {
+    setShowEventForm(false);
+    setEditingEventId(null);
+    setEventFormData({
+      day: 1,
+      time: "",
+      time_end: "",
+      title: "",
+      title_marathi: "",
+      category: "aarti",
+      description: "",
+      sort_order: 0,
+    });
+  };
+
+  const handleAddNotice = async () => {
+    const { error } = await supabase.from("announcements").insert([noticeFormData]);
+    if (!error) {
+      setShowNoticeForm(false);
+      resetNoticeForm();
+      fetchAnnouncements();
+    }
+  };
+
+  const handleUpdateNotice = async () => {
+    if (editingNoticeId === null) return;
+    const { error } = await supabase
+      .from("announcements")
+      .update(noticeFormData)
+      .eq("id", editingNoticeId);
+    if (!error) {
+      setEditingNoticeId(null);
+      setShowNoticeForm(false);
+      fetchAnnouncements();
+    }
+  };
+
+  const handleDeleteNotice = async (id: number) => {
+    if (!confirm("Delete this announcement?")) return;
+    const { error } = await supabase.from("announcements").delete().eq("id", id);
+    if (!error) fetchAnnouncements();
+  };
+
+  const handleToggleNoticeActive = async (id: number, active: boolean) => {
+    const { error } = await supabase
+      .from("announcements")
+      .update({ active })
+      .eq("id", id);
+    if (!error) fetchAnnouncements();
+  };
+
+  const handleEditNotice = (notice: Announcement) => {
+    setEditingNoticeId(notice.id);
+    setNoticeFormData({
+      title: notice.title,
+      title_marathi: notice.title_marathi,
+      description: notice.description,
+      description_marathi: notice.description_marathi,
+      priority: notice.priority,
+      active: notice.active,
+    });
+    setShowNoticeForm(true);
+  };
+
+  const resetNoticeForm = () => {
+    setShowNoticeForm(false);
+    setEditingNoticeId(null);
+    setNoticeFormData({
+      title: "",
+      title_marathi: "",
+      description: "",
+      description_marathi: "",
+      priority: "general",
+      active: true,
     });
   };
 
@@ -276,6 +449,17 @@ export default function AdminPage() {
     { id: "settings", label: "Settings", icon: "⚙️" },
   ];
 
+  const EVENT_CATEGORIES = [
+    "aarti", "cultural", "children", "bhajan", "dindi", "dhol-tasha",
+    "competition", "prasad", "social", "visarjan", "darshan", "general",
+  ];
+
+  const eventsByDay = events.reduce((acc, e) => {
+    if (!acc[e.day]) acc[e.day] = [];
+    acc[e.day].push(e);
+    return acc;
+  }, {} as Record<number, ScheduleEvent[]>);
+
   return (
     <>
       <Header />
@@ -291,9 +475,9 @@ export default function AdminPage() {
             Admin Dashboard
           </h1>
           <button
-            onClick={() => setIsAuthenticated(false)}
-            className="text-xs transition-colors"
-            style={{ color: STONE_400 }}
+            onClick={handleLogout}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+            style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}
           >
             Logout
           </button>
@@ -314,7 +498,7 @@ export default function AdminPage() {
                 border: `1px solid ${activeTab === tab.id ? MAROON : BORDER}`,
               }}
             >
-              {tab.label}
+              {tab.icon} {tab.label}
             </button>
           ))}
         </div>
@@ -323,96 +507,34 @@ export default function AdminPage() {
           <div className="space-y-3">
             <div
               className="rounded-lg p-4"
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: `1px solid ${BORDER}`,
-              }}
+              style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}
             >
-              <h3
-                className="text-[10px] uppercase tracking-wider mb-2"
-                style={{ color: STONE_400 }}
-              >
+              <h3 className="text-[10px] uppercase tracking-wider mb-2" style={{ color: STONE_400 }}>
                 Mandal
               </h3>
-              <p
-                className="font-bold font-gotu text-sm"
-                style={{ color: MAROON }}
-              >
+              <p className="font-bold font-gotu text-sm" style={{ color: MAROON }}>
                 {FESTIVAL_CONFIG.name}
               </p>
               <p className="text-xs" style={{ color: STONE_400 }}>
                 {FESTIVAL_CONFIG.location}
               </p>
             </div>
-
             <div className="grid grid-cols-2 gap-2">
-              <div
-                className="rounded-lg p-3 text-center"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
-                <p
-                  className="text-2xl font-bold font-gotu"
-                  style={{ color: MAROON }}
-                >
-                  {FESTIVAL_DAYS.length}
-                </p>
-                <p className="text-[10px]" style={{ color: STONE_400 }}>
-                  Days
-                </p>
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                <p className="text-2xl font-bold font-gotu" style={{ color: MAROON }}>{FESTIVAL_DAYS.length}</p>
+                <p className="text-[10px]" style={{ color: STONE_400 }}>Days</p>
               </div>
-              <div
-                className="rounded-lg p-3 text-center"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
-                <p
-                  className="text-2xl font-bold font-gotu"
-                  style={{ color: MAROON }}
-                >
-                  {aartis.length}
-                </p>
-                <p className="text-[10px]" style={{ color: STONE_400 }}>
-                  Aartis
-                </p>
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                <p className="text-2xl font-bold font-gotu" style={{ color: MAROON }}>{aartis.length}</p>
+                <p className="text-[10px]" style={{ color: STONE_400 }}>Aartis</p>
               </div>
-              <div
-                className="rounded-lg p-3 text-center"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
-                <p
-                  className="text-2xl font-bold font-gotu"
-                  style={{ color: MAROON }}
-                >
-                  {DAILY_SCHEDULES.reduce((a, s) => a + s.events.length, 0)}
-                </p>
-                <p className="text-[10px]" style={{ color: STONE_400 }}>
-                  Events
-                </p>
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                <p className="text-2xl font-bold font-gotu" style={{ color: MAROON }}>{events.length}</p>
+                <p className="text-[10px]" style={{ color: STONE_400 }}>Events</p>
               </div>
-              <div
-                className="rounded-lg p-3 text-center"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
-                <p
-                  className="text-2xl font-bold font-gotu"
-                  style={{ color: MAROON }}
-                >
-                  {ANNOUNCEMENTS.length}
-                </p>
-                <p className="text-[10px]" style={{ color: STONE_400 }}>
-                  Notices
-                </p>
+              <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                <p className="text-2xl font-bold font-gotu" style={{ color: MAROON }}>{announcements.length}</p>
+                <p className="text-[10px]" style={{ color: STONE_400 }}>Notices</p>
               </div>
             </div>
           </div>
@@ -424,28 +546,13 @@ export default function AdminPage() {
               <div
                 key={day.day}
                 className="rounded-lg p-3 flex items-center justify-between"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
+                style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}
               >
                 <div>
-                  <p
-                    className="font-bold text-sm"
-                    style={{ color: MAROON }}
-                  >
-                    Day {day.day}
-                  </p>
-                  <p className="text-[10px]" style={{ color: STONE_400 }}>
-                    {day.theme}
-                  </p>
+                  <p className="font-bold text-sm" style={{ color: MAROON }}>Day {day.day}</p>
+                  <p className="text-[10px]" style={{ color: STONE_400 }}>{day.theme}</p>
                 </div>
-                <span
-                  className="text-xs font-gotu"
-                  style={{ color: STONE_300 }}
-                >
-                  {day.dateMarathi}
-                </span>
+                <span className="text-xs font-gotu" style={{ color: STONE_300 }}>{day.dateMarathi}</span>
               </div>
             ))}
           </div>
@@ -453,29 +560,18 @@ export default function AdminPage() {
 
         {activeTab === "aarti" && (
           <div className="space-y-3">
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  resetForm();
-                  setShowForm(true);
-                }}
-                className="rounded-lg py-2 px-4 text-xs font-semibold text-white"
-                style={{ backgroundColor: MAROON }}
-              >
-                + Add Aarti
-              </button>
-            </div>
+            <button
+              onClick={() => { resetAartiForm(); setShowAartiForm(true); }}
+              className="rounded-lg py-2 px-4 text-xs font-semibold text-white"
+              style={{ backgroundColor: MAROON }}
+            >
+              + Add Aarti
+            </button>
 
-            {showForm && (
-              <div
-                className="rounded-lg p-4 space-y-3"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
+            {showAartiForm && (
+              <div className="rounded-lg p-4 space-y-3" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
                 <h3 className="text-sm font-bold" style={{ color: MAROON }}>
-                  {editingId ? "Edit Aarti" : "Add New Aarti"}
+                  {editingAartiId ? "Edit Aarti" : "Add New Aarti"}
                 </h3>
                 {[
                   { key: "slug", label: "Slug", type: "text" },
@@ -489,120 +585,62 @@ export default function AdminPage() {
                   { key: "sort_order", label: "Sort Order", type: "number" },
                 ].map((field) => (
                   <div key={field.key}>
-                    <label className="text-[10px]" style={{ color: STONE_400 }}>
-                      {field.label}
-                    </label>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>{field.label}</label>
                     <input
                       type={field.type}
-                      value={String((formData as Record<string, string | number | boolean>)[field.key] ?? "")}
+                      value={String((aartiFormData as Record<string, string | number | boolean>)[field.key] ?? "")}
                       onChange={(e) =>
-                        setFormData((prev) => ({
+                        setAartiFormData((prev) => ({
                           ...prev,
                           [field.key]: field.type === "number" ? Number(e.target.value) : e.target.value,
                         }))
                       }
                       className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                      style={{
-                        backgroundColor: IVORY,
-                        border: `1px solid ${BORDER}`,
-                        color: MAROON,
-                        "--tw-ring-color": MAROON,
-                      } as React.CSSProperties}
+                      style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}
                     />
                   </div>
                 ))}
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Lyrics
-                  </label>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Lyrics</label>
                   <textarea
-                    value={formData.lyrics}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, lyrics: e.target.value }))
-                    }
+                    value={aartiFormData.lyrics}
+                    onChange={(e) => setAartiFormData((prev) => ({ ...prev, lyrics: e.target.value }))}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
                     rows={3}
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Transliteration
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.transliteration}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, transliteration: e.target.value }))
-                    }
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Transliteration</label>
+                  <input type="text" value={aartiFormData.transliteration}
+                    onChange={(e) => setAartiFormData((prev) => ({ ...prev, transliteration: e.target.value }))}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Description
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, description: e.target.value }))
-                    }
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Description</label>
+                  <textarea value={aartiFormData.description}
+                    onChange={(e) => setAartiFormData((prev) => ({ ...prev, description: e.target.value }))}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
                     rows={2}
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Source URL
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.source_url}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, source_url: e.target.value }))
-                    }
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Source URL</label>
+                  <input type="text" value={aartiFormData.source_url}
+                    onChange={(e) => setAartiFormData((prev) => ({ ...prev, source_url: e.target.value }))}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}
                   />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Content Status
-                  </label>
-                  <select
-                    value={formData.content_status}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, content_status: e.target.value }))
-                    }
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Content Status</label>
+                  <select value={aartiFormData.content_status}
+                    onChange={(e) => setAartiFormData((prev) => ({ ...prev, content_status: e.target.value }))}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}
                   >
                     <option value="verified">Verified</option>
                     <option value="needs_verification">Needs Verification</option>
@@ -611,39 +649,23 @@ export default function AdminPage() {
                 </div>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-1 text-xs" style={{ color: STONE_600 }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.verified}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, verified: e.target.checked }))
-                      }
-                    />
+                    <input type="checkbox" checked={aartiFormData.verified}
+                      onChange={(e) => setAartiFormData((prev) => ({ ...prev, verified: e.target.checked }))} />
                     Verified
                   </label>
                   <label className="flex items-center gap-1 text-xs" style={{ color: STONE_600 }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.published}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, published: e.target.checked }))
-                      }
-                    />
+                    <input type="checkbox" checked={aartiFormData.published}
+                      onChange={(e) => setAartiFormData((prev) => ({ ...prev, published: e.target.checked }))} />
                     Published
                   </label>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    onClick={editingId !== null ? handleUpdateAarti : handleAddAarti}
-                    className="rounded-lg py-2 px-4 text-xs font-semibold text-white"
-                    style={{ backgroundColor: MAROON }}
-                  >
-                    {editingId ? "Update" : "Add"}
+                  <button onClick={editingAartiId !== null ? handleUpdateAarti : handleAddAarti}
+                    className="rounded-lg py-2 px-4 text-xs font-semibold text-white" style={{ backgroundColor: MAROON }}>
+                    {editingAartiId ? "Update" : "Add"}
                   </button>
-                  <button
-                    onClick={resetForm}
-                    className="rounded-lg py-2 px-4 text-xs font-semibold"
-                    style={{ backgroundColor: BORDER, color: STONE_600 }}
-                  >
+                  <button onClick={resetAartiForm}
+                    className="rounded-lg py-2 px-4 text-xs font-semibold" style={{ backgroundColor: BORDER, color: STONE_600 }}>
                     Cancel
                   </button>
                 </div>
@@ -652,53 +674,28 @@ export default function AdminPage() {
 
             <div className="space-y-2">
               {aartis.map((a) => (
-                <div
-                  key={a.id}
-                  className="rounded-lg p-3"
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    border: `1px solid ${BORDER}`,
-                  }}
-                >
+                <div key={a.id} className="rounded-lg p-3" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center justify-between mb-1">
-                    <p className="font-bold text-sm" style={{ color: MAROON }}>
-                      {a.title_devanagari || a.title}
-                    </p>
+                    <p className="font-bold text-sm" style={{ color: MAROON }}>{a.title_devanagari || a.title}</p>
                     <div className="flex gap-1">
-                      <button
-                        onClick={() => handleTogglePublished(a.id, !a.published)}
-                        className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${
-                          a.published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
+                      <button onClick={() => handleTogglePublished(a.id, !a.published)}
+                        className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${a.published ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                         {a.published ? "Published" : "Unpublished"}
                       </button>
-                      <button
-                        onClick={() => handleToggleVerified(a.id, !a.verified)}
-                        className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${
-                          a.verified ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
+                      <button onClick={() => handleToggleVerified(a.id, !a.verified)}
+                        className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${a.verified ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
                         {a.verified ? "Verified" : "Unverified"}
                       </button>
                     </div>
                   </div>
-                  <p className="text-[10px]" style={{ color: STONE_400 }}>
-                    {a.category} · {a.type} · {a.language}
-                  </p>
+                  <p className="text-[10px]" style={{ color: STONE_400 }}>{a.category} · {a.type} · {a.language}</p>
                   <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => handleEdit(a)}
-                      className="text-[10px] px-2 py-1 rounded"
-                      style={{ backgroundColor: `${MAROON}10`, color: MAROON }}
-                    >
+                    <button onClick={() => handleEditAarti(a)}
+                      className="text-[10px] px-2 py-1 rounded" style={{ backgroundColor: `${MAROON}10`, color: MAROON }}>
                       Edit
                     </button>
-                    <button
-                      onClick={() => handleDeleteAarti(a.id)}
-                      className="text-[10px] px-2 py-1 rounded"
-                      style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}
-                    >
+                    <button onClick={() => handleDeleteAarti(a.id)}
+                      className="text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>
                       Delete
                     </button>
                   </div>
@@ -710,43 +707,119 @@ export default function AdminPage() {
 
         {activeTab === "events" && (
           <div className="space-y-3">
-            {DAILY_SCHEDULES.map((s) => (
-              <div key={s.day}>
-                <p
-                  className="text-sm font-bold mb-2"
-                  style={{ color: MAROON }}
-                >
-                  Day {s.day}
-                </p>
+            <button
+              onClick={() => { resetEventForm(); setShowEventForm(true); }}
+              className="rounded-lg py-2 px-4 text-xs font-semibold text-white"
+              style={{ backgroundColor: MAROON }}
+            >
+              + Add Event
+            </button>
+
+            {showEventForm && (
+              <div className="rounded-lg p-4 space-y-3" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                <h3 className="text-sm font-bold" style={{ color: MAROON }}>
+                  {editingEventId ? "Edit Event" : "Add New Event"}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>Day (1-7)</label>
+                    <select value={eventFormData.day}
+                      onChange={(e) => setEventFormData((prev) => ({ ...prev, day: Number(e.target.value) }))}
+                      className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                      style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}>
+                      {[1,2,3,4,5,6,7].map(d => <option key={d} value={d}>Day {d}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>Category</label>
+                    <select value={eventFormData.category}
+                      onChange={(e) => setEventFormData((prev) => ({ ...prev, category: e.target.value }))}
+                      className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                      style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}>
+                      {EVENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>Start Time</label>
+                    <input type="time" value={eventFormData.time}
+                      onChange={(e) => setEventFormData((prev) => ({ ...prev, time: e.target.value }))}
+                      className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                      style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                  </div>
+                  <div>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>End Time</label>
+                    <input type="time" value={eventFormData.time_end}
+                      onChange={(e) => setEventFormData((prev) => ({ ...prev, time_end: e.target.value }))}
+                      className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                      style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Title (English)</label>
+                  <input type="text" value={eventFormData.title}
+                    onChange={(e) => setEventFormData((prev) => ({ ...prev, title: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Title (Marathi)</label>
+                  <input type="text" value={eventFormData.title_marathi}
+                    onChange={(e) => setEventFormData((prev) => ({ ...prev, title_marathi: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Description</label>
+                  <textarea value={eventFormData.description}
+                    onChange={(e) => setEventFormData((prev) => ({ ...prev, description: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    rows={2}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Sort Order</label>
+                  <input type="number" value={eventFormData.sort_order}
+                    onChange={(e) => setEventFormData((prev) => ({ ...prev, sort_order: Number(e.target.value) }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={editingEventId !== null ? handleUpdateEvent : handleAddEvent}
+                    className="rounded-lg py-2 px-4 text-xs font-semibold text-white" style={{ backgroundColor: MAROON }}>
+                    {editingEventId ? "Update" : "Add"}
+                  </button>
+                  <button onClick={resetEventForm}
+                    className="rounded-lg py-2 px-4 text-xs font-semibold" style={{ backgroundColor: BORDER, color: STONE_600 }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {Object.entries(eventsByDay).map(([day, dayEvents]) => (
+              <div key={day}>
+                <p className="text-sm font-bold mb-2" style={{ color: MAROON }}>Day {day}</p>
                 <div className="space-y-1">
-                  {s.events.slice(0, 4).map((e) => (
-                    <div
-                      key={e.id}
-                      className="rounded-lg p-2 flex items-center justify-between"
-                      style={{
-                        backgroundColor: "#FFFFFF",
-                        border: `1px solid ${BORDER}`,
-                      }}
-                    >
-                      <p className="text-xs" style={{ color: STONE_600 }}>
-                        {e.titleMarathi}
-                      </p>
-                      <p
-                        className="text-[10px] font-mono"
-                        style={{ color: STONE_400 }}
-                      >
-                        {e.time}
-                      </p>
+                  {dayEvents.map((e) => (
+                    <div key={e.id} className="rounded-lg p-2 flex items-center justify-between" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium" style={{ color: STONE_600 }}>{e.title_marathi || e.title}</p>
+                        <p className="text-[10px]" style={{ color: STONE_400 }}>{e.time}{e.time_end ? ` - ${e.time_end}` : ""} · {e.category}</p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => handleEditEvent(e)}
+                          className="text-[10px] px-2 py-1 rounded" style={{ backgroundColor: `${MAROON}10`, color: MAROON }}>
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteEvent(e.id)}
+                          className="text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>
+                          Del
+                        </button>
+                      </div>
                     </div>
                   ))}
-                  {s.events.length > 4 && (
-                    <p
-                      className="text-[10px] text-center"
-                      style={{ color: STONE_300 }}
-                    >
-                      +{s.events.length - 4} more
-                    </p>
-                  )}
                 </div>
               </div>
             ))}
@@ -754,211 +827,186 @@ export default function AdminPage() {
         )}
 
         {activeTab === "notices" && (
-          <div className="space-y-2">
-            {ANNOUNCEMENTS.map((a) => (
-              <div
-                key={a.id}
-                className="rounded-lg p-3 flex items-start justify-between gap-2"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="font-bold text-sm"
-                    style={{ color: MAROON }}
-                  >
-                  {a.title}
-                  </p>
-                  <p className="text-[10px] mt-1" style={{ color: STONE_400 }}>
-                    {a.descriptionMarathi}
-                  </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => { resetNoticeForm(); setShowNoticeForm(true); }}
+              className="rounded-lg py-2 px-4 text-xs font-semibold text-white"
+              style={{ backgroundColor: MAROON }}
+            >
+              + Add Announcement
+            </button>
+
+            {showNoticeForm && (
+              <div className="rounded-lg p-4 space-y-3" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                <h3 className="text-sm font-bold" style={{ color: MAROON }}>
+                  {editingNoticeId ? "Edit Announcement" : "New Announcement"}
+                </h3>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Title (English)</label>
+                  <input type="text" value={noticeFormData.title}
+                    onChange={(e) => setNoticeFormData((prev) => ({ ...prev, title: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
-                <span
-                  className="shrink-0 text-[9px] px-2 py-0.5 rounded-full font-medium"
-                  style={{
-                    backgroundColor:
-                      a.priority === "important" ? "#FEE2E2" : `${MAROON}10`,
-                    color: a.priority === "important" ? "#DC2626" : MAROON,
-                  }}
-                >
-                  {a.priority}
-                </span>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Title (Marathi)</label>
+                  <input type="text" value={noticeFormData.title_marathi}
+                    onChange={(e) => setNoticeFormData((prev) => ({ ...prev, title_marathi: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Description (English)</label>
+                  <textarea value={noticeFormData.description}
+                    onChange={(e) => setNoticeFormData((prev) => ({ ...prev, description: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    rows={2}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Description (Marathi)</label>
+                  <textarea value={noticeFormData.description_marathi}
+                    onChange={(e) => setNoticeFormData((prev) => ({ ...prev, description_marathi: e.target.value }))}
+                    className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                    rows={2}
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>Priority</label>
+                    <select value={noticeFormData.priority}
+                      onChange={(e) => setNoticeFormData((prev) => ({ ...prev, priority: e.target.value }))}
+                      className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
+                      style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties}>
+                      <option value="general">General</option>
+                      <option value="important">Important</option>
+                      <option value="event">Event</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px]" style={{ color: STONE_400 }}>Active</label>
+                    <div className="mt-2">
+                      <label className="flex items-center gap-2 text-xs" style={{ color: STONE_600 }}>
+                        <input type="checkbox" checked={noticeFormData.active}
+                          onChange={(e) => setNoticeFormData((prev) => ({ ...prev, active: e.target.checked }))} />
+                        Active
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={editingNoticeId !== null ? handleUpdateNotice : handleAddNotice}
+                    className="rounded-lg py-2 px-4 text-xs font-semibold text-white" style={{ backgroundColor: MAROON }}>
+                    {editingNoticeId ? "Update" : "Add"}
+                  </button>
+                  <button onClick={resetNoticeForm}
+                    className="rounded-lg py-2 px-4 text-xs font-semibold" style={{ backgroundColor: BORDER, color: STONE_600 }}>
+                    Cancel
+                  </button>
+                </div>
               </div>
-            ))}
+            )}
+
+            <div className="space-y-2">
+              {announcements.map((a) => (
+                <div key={a.id} className="rounded-lg p-3" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm" style={{ color: MAROON }}>{a.title}</p>
+                      <p className="text-[10px] mt-1" style={{ color: STONE_400 }}>{a.title_marathi}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: STONE_400 }}>{a.description}</p>
+                      <div className="flex gap-2 mt-2">
+                        <span className="text-[9px] px-2 py-0.5 rounded-full font-medium"
+                          style={{
+                            backgroundColor: a.priority === "important" ? "#FEE2E2" : `${MAROON}10`,
+                            color: a.priority === "important" ? "#DC2626" : MAROON,
+                          }}>
+                          {a.priority}
+                        </span>
+                        <button onClick={() => handleToggleNoticeActive(a.id, !a.active)}
+                          className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${a.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                          {a.active ? "Active" : "Inactive"}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={() => handleEditNotice(a)}
+                        className="text-[10px] px-2 py-1 rounded" style={{ backgroundColor: `${MAROON}10`, color: MAROON }}>
+                        Edit
+                      </button>
+                      <button onClick={() => handleDeleteNotice(a.id)}
+                        className="text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>
+                        Del
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {activeTab === "settings" && (
           <div className="space-y-3">
-            <div
-              className="rounded-lg p-4"
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: `1px solid ${BORDER}`,
-              }}
-            >
-              <h3
-                className="text-[10px] uppercase tracking-wider mb-3"
-                style={{ color: STONE_400 }}
-              >
-                Mandal Settings
-              </h3>
+            <div className="rounded-lg p-4" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+              <h3 className="text-[10px] uppercase tracking-wider mb-3" style={{ color: STONE_400 }}>Mandal Settings</h3>
               <div className="space-y-2">
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={FESTIVAL_CONFIG.name}
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Name</label>
+                  <input type="text" defaultValue={FESTIVAL_CONFIG.name}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={FESTIVAL_CONFIG.location}
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Location</label>
+                  <input type="text" defaultValue={FESTIVAL_CONFIG.location}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
               </div>
             </div>
-
-            <div
-              className="rounded-lg p-4"
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: `1px solid ${BORDER}`,
-              }}
-            >
-              <h3
-                className="text-[10px] uppercase tracking-wider mb-3"
-                style={{ color: STONE_400 }}
-              >
-                Festival Dates
-              </h3>
+            <div className="rounded-lg p-4" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+              <h3 className="text-[10px] uppercase tracking-wider mb-3" style={{ color: STONE_400 }}>Festival Dates</h3>
               <div className="space-y-2">
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    defaultValue={FESTIVAL_CONFIG.startDate}
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Start Date</label>
+                  <input type="date" defaultValue={FESTIVAL_CONFIG.startDate}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    defaultValue={FESTIVAL_CONFIG.endDate}
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>End Date</label>
+                  <input type="date" defaultValue={FESTIVAL_CONFIG.endDate}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
               </div>
             </div>
-
-            <div
-              className="rounded-lg p-4"
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: `1px solid ${BORDER}`,
-              }}
-            >
-              <h3
-                className="text-[10px] uppercase tracking-wider mb-3"
-                style={{ color: STONE_400 }}
-              >
-                Contact Settings
-              </h3>
+            <div className="rounded-lg p-4" style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}>
+              <h3 className="text-[10px] uppercase tracking-wider mb-3" style={{ color: STONE_400 }}>Contact Settings</h3>
               <div className="space-y-2">
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    defaultValue="+91XXXXXXXXXX"
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>Phone</label>
+                  <input type="tel" defaultValue="+91XXXXXXXXXX"
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    defaultValue="+91XXXXXXXXXX"
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>WhatsApp</label>
+                  <input type="tel" defaultValue="+91XXXXXXXXXX"
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-[10px]" style={{ color: STONE_400 }}>
-                    UPI ID
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={FESTIVAL_CONFIG.upiId}
+                  <label className="text-[10px]" style={{ color: STONE_400 }}>UPI ID</label>
+                  <input type="text" defaultValue={FESTIVAL_CONFIG.upiId}
                     className="w-full rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: IVORY,
-                      border: `1px solid ${BORDER}`,
-                      color: MAROON,
-                      "--tw-ring-color": MAROON,
-                    } as React.CSSProperties}
-                  />
+                    style={{ backgroundColor: IVORY, border: `1px solid ${BORDER}`, color: MAROON, "--tw-ring-color": MAROON } as React.CSSProperties} />
                 </div>
               </div>
             </div>
-
-            <button
-              className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: MAROON }}
-            >
+            <button className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: MAROON }}>
               Save Settings
             </button>
           </div>
