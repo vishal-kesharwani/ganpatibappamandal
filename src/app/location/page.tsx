@@ -105,7 +105,7 @@ export default function LocationPage() {
           </h3>
           <div className="bg-white border border-[#E7E5E4] rounded-lg overflow-hidden mb-3">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.0!2d73.0!3d19.2!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTnCsDEyJzAwLjAiTiA3M8KwMDAnMDAuMCJF!5e0!3m2!1sen!2sin!4v1"
+              src="https://www.google.com/maps?q=19.292411993266107,73.05723546694804&output=embed"
               width="100%"
               height="250"
               style={{ border: 0 }}
@@ -117,7 +117,7 @@ export default function LocationPage() {
           </div>
           <div className="flex gap-2">
             <a
-              href={site.mapUrl}
+              href="https://www.google.com/maps/dir/?api=1&destination=19.292411993266107,73.05723546694804"
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 text-center bg-white border border-[#E7E5E4] rounded-lg px-4 py-3 text-xs font-medium text-[#1C1917]"

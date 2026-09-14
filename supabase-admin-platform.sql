@@ -398,7 +398,7 @@ INSERT INTO public.site_settings (key, value) VALUES
   ('about', '"OM SAI MITRA MANDAL is a community organization in Triveni Sangam Apartment, Kaneri, Bhiwandi, celebrating Ganesh Chaturthi with devotion and community participation."'),
   ('mission', '"To foster community spirit through religious celebrations, cultural activities, and social initiatives under the blessings of Lord Ganesha."'),
   ('established_year', '"2010"'),
-  ('map_url', '"https://maps.app.goo.gl/k1WtrcRubSinUwau5"'),
+  ('map_url', '"https://www.google.com/maps/search/?api=1&query=19.292411993266107,73.05723546694804"'),
   ('upi_id', '"omsaimitramandal@upi"')
 ON CONFLICT (key) DO NOTHING;
 

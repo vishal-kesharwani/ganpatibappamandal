@@ -11,7 +11,9 @@ export const FESTIVAL_CONFIG = {
   dateRangeMarathi: "१४ सप्टेंबर — २० सप्टेंबर",
   upiId: "omsaimitramandal@upi",
   address: "Triveni Sangam Apartment, Kaneri, Bhiwandi, Maharashtra 421302",
-  mapUrl: "https://maps.app.goo.gl/k1WtrcRubSinUwau5",
+  mapUrl: "https://www.google.com/maps/search/?api=1&query=19.292411993266107,73.05723546694804",
+  mapLat: 19.292411993266107,
+  mapLng: 73.05723546694804,
   instagram: "https://www.instagram.com/omsaimitramandalbhiwandi/",
 };
 
