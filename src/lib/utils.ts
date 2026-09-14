@@ -1,16 +1,24 @@
 import { FESTIVAL_CONFIG, FESTIVAL_DAYS } from "@/data/festival";
 
+/** Local calendar date as YYYY-MM-DD (timezone-safe: uses device date). */
+export function localISODate(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Auto day checker — maps the device calendar date to the festival day.
+ * Returns 0 before the festival, 1–7 during, 8 after.
+ * Timezone-safe: compares calendar dates, never millisecond diffs against
+ * UTC-midnight parsed strings.
+ */
 export function getCurrentDay(): number {
-  const today = new Date();
-  const startDate = new Date(FESTIVAL_CONFIG.startDate);
-  const endDate = new Date(FESTIVAL_CONFIG.endDate);
-  
-  if (today < startDate) return 0;
-  if (today > endDate) return 8;
-  
-  const diffTime = today.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays + 1;
+  const today = localISODate();
+  const idx = FESTIVAL_DAYS.findIndex((d) => d.date === today);
+  if (idx >= 0) return idx + 1;
+  return today < FESTIVAL_CONFIG.startDate ? 0 : 8;
 }
 
 export function getCurrentDayData() {
@@ -19,11 +27,8 @@ export function getCurrentDayData() {
 }
 
 export function isFestivalActive(): boolean {
-  const today = new Date();
-  const startDate = new Date(FESTIVAL_CONFIG.startDate);
-  const endDate = new Date(FESTIVAL_CONFIG.endDate);
-  endDate.setHours(23, 59, 59);
-  return today >= startDate && today <= endDate;
+  const day = getCurrentDay();
+  return day >= 1 && day <= 7;
 }
 
 export function formatTime12(time24: string): string {

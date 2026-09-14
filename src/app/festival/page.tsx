@@ -72,7 +72,7 @@ export default function FestivalPage() {
             {days.map((d) => {
               const isSelected = d.day === selectedDay;
               const dayCurrent = d.day === currentDay;
-              const dateNum = new Date(d.date).getDate();
+              const dateNum = Number(d.date.split("-")[2]);
 
               return (
                 <button

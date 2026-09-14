@@ -25,17 +25,6 @@ export default function HomePage() {
               श्री गणेशाय नमः
             </p>
 
-            <div className="relative w-full max-w-[200px] mx-auto">
-              <Image
-                src="/ganpati-hero.png"
-                alt="Ganpati Bappa"
-                width={200}
-                height={200}
-                className="w-full h-auto"
-                priority
-              />
-            </div>
-
             <div className="relative w-full max-w-[320px] mx-auto overflow-hidden rounded-lg border border-[#E7E5E4] shadow-sm">
               <Image
                 src="/ganpati-with-mandal-name.jpeg"
