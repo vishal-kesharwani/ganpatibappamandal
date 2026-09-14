@@ -1,46 +1,52 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { Calendar, Share2, Clock, MapPin } from "lucide-react";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { DAILY_SCHEDULES, CATEGORY_LABELS } from "@/data/schedule";
+import { useLiveEvents, useLiveDays, categoryLabel } from "@/lib/public-data";
 import { formatTime12, getCurrentDay, generateCalendarUrl } from "@/lib/utils";
 
 const CATEGORY_COLORS: Record<string, string> = {
   aarti: "#7C2D12",
+  puja: "#9A3412",
+  prasad: "#7C2D12",
   cultural: "#EA580C",
   children: "#B45309",
   bhajan: "#9A3412",
   dindi: "#C2410C",
   "dhol-tasha": "#D97706",
   competition: "#A16207",
-  prasad: "#7C2D12",
   social: "#57534E",
+  meeting: "#57534E",
   visarjan: "#7C2D12",
+  darshan: "#B45309",
+  other: "#57534E",
 };
 
 export default function EventsPage() {
   const currentDay = getCurrentDay();
+  const { events } = useLiveEvents();
+  const { data: days } = useLiveDays();
   const [selectedDay, setSelectedDay] = useState(currentDay >= 1 && currentDay <= 7 ? currentDay : 1);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const daySchedule = useMemo(
-    () => DAILY_SCHEDULES.find((d) => d.day === selectedDay),
-    [selectedDay]
+  const dayEvents = useMemo(
+    () => events.filter((e) => e.day === selectedDay),
+    [events, selectedDay]
   );
+  const dayMeta = useMemo(() => days.find((d) => d.day === selectedDay), [days, selectedDay]);
 
   const availableCategories = useMemo(() => {
-    if (!daySchedule) return [];
-    const cats = new Set(daySchedule.events.map((e) => e.category));
+    const cats = new Set(dayEvents.map((e) => e.category));
     return Array.from(cats);
-  }, [daySchedule]);
+  }, [dayEvents]);
 
   const filteredEvents = useMemo(() => {
-    if (!daySchedule) return [];
-    if (!selectedCategory) return daySchedule.events;
-    return daySchedule.events.filter((e) => e.category === selectedCategory);
-  }, [daySchedule, selectedCategory]);
+    if (!selectedCategory) return dayEvents;
+    return dayEvents.filter((e) => e.category === selectedCategory);
+  }, [dayEvents, selectedCategory]);
 
   const handleShare = (title: string, date: string, time: string) => {
     const text = `${title} - OM SAI MITRA MANDAL`;
@@ -53,7 +59,6 @@ export default function EventsPage() {
       <Header />
 
       <main className="mx-auto max-w-md px-4 pb-24 pt-4">
-        {/* Title */}
         <div className="mb-6">
           <h1
             className="text-2xl font-bold tracking-tight"
@@ -66,7 +71,6 @@ export default function EventsPage() {
           </p>
         </div>
 
-        {/* Day Selector */}
         <div className="mb-5">
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
             {Array.from({ length: 7 }, (_, i) => i + 1).map((day) => {
@@ -79,11 +83,17 @@ export default function EventsPage() {
                     setSelectedDay(day);
                     setSelectedCategory(null);
                   }}
+                  aria-pressed={isSelected}
                   className="flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
                   style={{
-                    backgroundColor: isSelected ? "#7C2D12" : "white",
-                    color: isSelected ? "white" : "#57534E",
-                    border: isToday && !isSelected ? "2px solid #EA580C" : "1px solid #E7E5E4",
+                    backgroundColor: isSelected ? "#6B2E2E" : "#FFFFFF",
+                    color: isSelected ? "#FFF8EE" : isToday ? "#EA580C" : "#57534E",
+                    border: isSelected
+                      ? "1px solid #6B2E2E"
+                      : isToday
+                        ? "2px solid #EA580C"
+                        : "1px solid #E7E5E4",
+                    fontWeight: isSelected ? 700 : 500,
                   }}
                 >
                   Day {day}
@@ -93,30 +103,20 @@ export default function EventsPage() {
           </div>
         </div>
 
-        {/* Date Display */}
-        {daySchedule && (
+        {dayMeta && (
           <p className="mb-4 text-xs font-medium uppercase tracking-wider" style={{ color: "#A8A29E" }}>
-            {new Date(daySchedule.date).toLocaleDateString("en-IN", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {dayMeta.date} · {dayMeta.dayOfWeek}
           </p>
         )}
 
-        {/* Category Chips */}
         {availableCategories.length > 0 && (
           <div className="mb-5">
             <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
               <button
                 onClick={() => setSelectedCategory(null)}
-                className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
-                style={{
-                  backgroundColor: !selectedCategory ? "#7C2D12" : "white",
-                  color: !selectedCategory ? "white" : "#57534E",
-                  border: "1px solid #E7E5E4",
-                }}
+                aria-pressed={!selectedCategory}
+                className="chip"
+                data-active={!selectedCategory}
               >
                 All
               </button>
@@ -124,21 +124,17 @@ export default function EventsPage() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-                  className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
-                  style={{
-                    backgroundColor: selectedCategory === cat ? (CATEGORY_COLORS[cat] || "#7C2D12") : "white",
-                    color: selectedCategory === cat ? "white" : "#57534E",
-                    border: "1px solid #E7E5E4",
-                  }}
+                  aria-pressed={selectedCategory === cat}
+                  className="chip"
+                  data-active={selectedCategory === cat}
                 >
-                  {CATEGORY_LABELS[cat] || cat}
+                  {categoryLabel(cat)}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Events List */}
         <div className="space-y-3">
           {filteredEvents.length === 0 && (
             <div className="rounded-lg border p-6 text-center" style={{ backgroundColor: "white", borderColor: "#E7E5E4" }}>
@@ -168,13 +164,19 @@ export default function EventsPage() {
                     className="rounded-full px-2 py-0.5 text-[10px] font-medium"
                     style={{ backgroundColor: `${categoryColor}15`, color: categoryColor }}
                   >
-                    {CATEGORY_LABELS[event.category] || event.category}
+                    {categoryLabel(event.category)}
                   </span>
                 </div>
 
-                <h3 className="text-base font-semibold" style={{ color: "#1C1917" }}>
-                  {event.titleMarathi}
-                </h3>
+                {event.aartiSlug ? (
+                  <Link href={`/aarti/${event.aartiSlug}`} className="text-base font-semibold hover:underline" style={{ color: "#1C1917" }}>
+                    {event.titleMarathi}
+                  </Link>
+                ) : (
+                  <h3 className="text-base font-semibold" style={{ color: "#1C1917" }}>
+                    {event.titleMarathi}
+                  </h3>
+                )}
                 <p className="mt-0.5 text-xs" style={{ color: "#A8A29E" }}>
                   {event.title}
                 </p>
@@ -198,7 +200,7 @@ export default function EventsPage() {
                   <a
                     href={generateCalendarUrl(
                       `${event.titleMarathi} - OM SAI MITRA MANDAL`,
-                      daySchedule?.date || "",
+                      dayMeta?.date || "",
                       event.time,
                       event.description
                     )}
@@ -214,7 +216,7 @@ export default function EventsPage() {
                     Add to Calendar
                   </a>
                   <button
-                    onClick={() => handleShare(event.titleMarathi, daySchedule?.date || "", event.time)}
+                    onClick={() => handleShare(event.titleMarathi, dayMeta?.date || "", event.time)}
                     className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
                     style={{
                       backgroundColor: "#25D36610",

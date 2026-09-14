@@ -1,23 +1,24 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { FESTIVAL_DAYS, FESTIVAL_CONFIG } from "@/data/festival";
-import { DAILY_SCHEDULES, CATEGORY_LABELS } from "@/data/schedule";
+import { notFound, useParams } from "next/navigation";
+import { FESTIVAL_CONFIG } from "@/data/festival";
+import { useLiveDays, useLiveEvents, categoryLabel } from "@/lib/public-data";
 import { getCurrentDay, formatTime12 } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
 import ShareButton from "@/components/ShareButton";
 
-export function generateStaticParams() {
-  return FESTIVAL_DAYS.map((day) => ({ day: String(day.day) }));
-}
-
-export default async function DayDetailPage({ params }: { params: Promise<{ day: string }> }) {
-  const { day: dayStr } = await params;
-  const dayNum = parseInt(dayStr);
-  if (isNaN(dayNum) || dayNum < 1 || dayNum > 7) notFound();
-  const dayData = FESTIVAL_DAYS.find((d) => d.day === dayNum);
-  const schedule = DAILY_SCHEDULES.find((s) => s.day === dayNum);
+export default function DayDetailPage() {
+  const params = useParams();
+  const dayNum = parseInt(params.day as string);
+  const { data: days } = useLiveDays();
+  const { events } = useLiveEvents();
   const currentDay = getCurrentDay();
+
+  if (isNaN(dayNum) || dayNum < 1 || dayNum > 7) notFound();
+  const dayData = days.find((d) => d.day === dayNum);
+  const schedule = events.filter((e) => e.day === dayNum);
   const isToday = dayNum === currentDay;
   const isVisarjan = dayNum === 7;
   if (!dayData) notFound();
@@ -46,6 +47,9 @@ export default async function DayDetailPage({ params }: { params: Promise<{ day:
               <p className="text-sm font-gotu text-[#57534E] mt-1">
                 {dayData.dayOfWeek} · {dayData.dayOfWeekMarathi}
               </p>
+              <p className="text-sm font-medium text-[#7C2D12] mt-1">
+                {dayData.title}
+              </p>
             </div>
             <div className="text-right">
               {isToday && (
@@ -64,13 +68,10 @@ export default async function DayDetailPage({ params }: { params: Promise<{ day:
 
         {/* Day Details */}
         <div className="space-y-3 mb-6">
-          {dayData.specialEvent && (
+          {dayData.theme && (
             <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
-              <p className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-1">Special Event</p>
-              <p className="text-[#1C1917] text-sm font-bold font-gotu">{dayData.specialEvent}</p>
-              {dayData.specialEventTime && (
-                <p className="text-[#A8A29E] text-xs mt-1">{dayData.specialEventTime}</p>
-              )}
+              <p className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-1">Theme</p>
+              <p className="text-[#1C1917] text-sm font-bold font-gotu">{dayData.theme}</p>
             </div>
           )}
           {dayData.description && (
@@ -79,20 +80,14 @@ export default async function DayDetailPage({ params }: { params: Promise<{ day:
               <p className="text-[#57534E] text-sm font-gotu leading-relaxed">{dayData.description}</p>
             </div>
           )}
-          {dayData.theme && (
-            <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
-              <p className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-1">Theme</p>
-              <p className="text-[#1C1917] text-sm font-bold font-gotu">{dayData.theme}</p>
-            </div>
-          )}
         </div>
 
         {/* Schedule */}
-        {schedule && schedule.events.length > 0 && (
+        {schedule.length > 0 && (
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-[#A8A29E] mb-3">Schedule</h2>
             <div className="space-y-2">
-              {schedule.events.map((event) => (
+              {schedule.map((event) => (
                 <div key={event.id} className="bg-white border border-[#E7E5E4] rounded-lg p-4">
                   <div className="flex items-start gap-4">
                     <div className="text-right shrink-0 w-16">
@@ -103,9 +98,15 @@ export default async function DayDetailPage({ params }: { params: Promise<{ day:
                     </div>
                     <div className="w-px bg-[#E7E5E4] self-stretch shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-[#1C1917] text-sm font-gotu">{event.titleMarathi}</p>
+                      {event.aartiSlug ? (
+                        <Link href={`/aarti/${event.aartiSlug}`} className="text-[#1C1917] text-sm font-gotu hover:text-[#7C2D12] hover:underline">
+                          {event.titleMarathi}
+                        </Link>
+                      ) : (
+                        <p className="text-[#1C1917] text-sm font-gotu">{event.titleMarathi}</p>
+                      )}
                       <p className="text-[#A8A29E] text-[10px] mt-0.5">
-                        {CATEGORY_LABELS[event.category] || event.category}
+                        {categoryLabel(event.category)}
                       </p>
                       {event.description && (
                         <p className="text-[#A8A29E] text-[11px] font-gotu mt-1">{event.description}</p>

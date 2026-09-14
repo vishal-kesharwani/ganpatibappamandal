@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import type { AartiRow } from "@/lib/supabase";
 import { shareText, shareToWhatsApp } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
+import AdminAartiBar from "@/components/AdminAartiBar";
 
 type Language = "marathi" | "hindi" | "hinglish";
 
@@ -254,7 +255,7 @@ export default function AartiDetailPage() {
       {/* Controls Bar - Maroon Background */}
       <div className="sticky top-[49px] z-30 bg-[#7C2D12] border-b border-[#7C2D12]/80">
         <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
-          {/* Language Toggle */}
+          {/* Language Toggle — chip-on-dark keeps contrast on the maroon bar */}
           <div className="flex items-center justify-center gap-2">
             {(Object.keys(LANG_LABELS) as Language[]).map((lang) => {
               const disabled = lang === "hinglish" && !hasTransliteration;
@@ -263,13 +264,9 @@ export default function AartiDetailPage() {
                   key={lang}
                   onClick={() => !disabled && setLanguage(lang)}
                   disabled={disabled}
-                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    disabled
-                      ? "bg-[#7C2D12]/40 border border-[#7C2D12]/30 text-[#FAF7F2]/50 cursor-not-allowed opacity-50"
-                      : language === lang
-                        ? "bg-[#7C2D12] text-white shadow-sm border border-[#7C2D12]/50"
-                        : "bg-[#1C1917] text-[#FAF7F2] border border-[#1C1917]/50 hover:bg-[#292524] hover:border-[#7C2D12]/50 hover:text-[#FAF7F2]"
-                  }`}
+                  aria-pressed={language === lang}
+                  className="chip chip-on-dark"
+                  data-active={language === lang}
                 >
                   {LANG_LABELS[lang]}
                 </button>
@@ -286,7 +283,7 @@ export default function AartiDetailPage() {
               >
                 A−
               </button>
-              <span className="text-[10px] w-8 text-center text-[#78716C] tabular-nums">
+              <span className="text-[10px] w-8 text-center text-[#FAF7F2] tabular-nums">
                 {fontSize}
               </span>
               <button
@@ -305,7 +302,7 @@ export default function AartiDetailPage() {
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 isReading
                   ? "bg-[#991B1B] text-white shadow-sm"
-                  : "bg-[#7C2D12] text-white hover:bg-[#6B2113] shadow-sm border border-[#7C2D12]/50"
+                  : "bg-[#FFF8EE] text-[#6B2E2E] hover:bg-white shadow-sm border border-[#FFF8EE]"
               }`}
             >
               {isReading ? "Stop Reading" : "Read Mode"}
@@ -313,6 +310,8 @@ export default function AartiDetailPage() {
           </div>
         </div>
       </div>
+
+      <AdminAartiBar slug={aartiData.slug} aartiId={aartiData.id} />
 
       {/* Aarti Content */}
       <div className="max-w-lg mx-auto px-6 py-10 pb-28">

@@ -141,11 +141,9 @@ export default function AartiPage() {
                   <button
                     key={lang}
                     onClick={() => setActiveLanguage(lang)}
-                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs transition-colors whitespace-nowrap ${
-                      isActive
-                        ? "bg-[#7C2D12] text-white font-medium"
-                        : "bg-[#E7E5E4] border border-[#D6D3D1] text-[#1C1917] font-medium"
-                    }`}
+                    aria-pressed={isActive}
+                    className="chip"
+                    data-active={isActive}
                   >
                     {label}
                   </button>
@@ -167,11 +165,9 @@ export default function AartiPage() {
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs transition-colors whitespace-nowrap ${
-                      isActive
-                        ? "bg-[#7C2D12] text-white font-medium"
-                        : "bg-[#E7E5E4] border border-[#D6D3D1] text-[#1C1917] font-medium"
-                    }`}
+                    aria-pressed={isActive}
+                    className="chip"
+                    data-active={isActive}
                   >
                     {label}
                   </button>
@@ -193,11 +189,9 @@ export default function AartiPage() {
                   <button
                     key={typ}
                     onClick={() => setActiveType(typ)}
-                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs transition-colors whitespace-nowrap ${
-                      isActive
-                        ? "bg-[#7C2D12] text-white font-medium"
-                        : "bg-[#E7E5E4] border border-[#D6D3D1] text-[#1C1917] font-medium"
-                    }`}
+                    aria-pressed={isActive}
+                    className="chip"
+                    data-active={isActive}
                   >
                     {label}
                   </button>

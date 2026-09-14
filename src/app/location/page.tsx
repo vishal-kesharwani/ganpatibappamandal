@@ -1,9 +1,12 @@
+"use client";
+
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { MANDAL_INFO, CONTACTS } from "@/data/info";
-import { FESTIVAL_CONFIG } from "@/data/festival";
+import { useLiveSite } from "@/lib/public-data";
 
 export default function LocationPage() {
+  const { data: site } = useLiveSite();
+
   return (
     <>
       <Header />
@@ -22,10 +25,10 @@ export default function LocationPage() {
         {/* Mandal Info Card */}
         <div className="bg-white border border-[#E7E5E4] rounded-lg p-5 text-center mb-6">
           <h2 className="text-lg font-bold font-gotu text-[#7C2D12]">
-            {MANDAL_INFO.name}
+            {site.mandalName}
           </h2>
-          <p className="text-sm text-[#57534E] mt-1">{MANDAL_INFO.location}</p>
-          <p className="text-xs text-[#A8A29E] mt-1">{MANDAL_INFO.address}</p>
+          <p className="text-sm text-[#57534E] mt-1">{site.location}</p>
+          <p className="text-xs text-[#A8A29E] mt-1">{site.address}</p>
         </div>
 
         {/* Contact Section */}
@@ -34,7 +37,7 @@ export default function LocationPage() {
             Contact
           </h3>
           <div className="space-y-3">
-            {CONTACTS.map((contact) => (
+            {site.contacts.map((contact) => (
               <div
                 key={contact.phone}
                 className="bg-white border border-[#E7E5E4] rounded-lg p-4"
@@ -42,7 +45,7 @@ export default function LocationPage() {
                 <p className="text-sm font-medium text-[#1C1917]">
                   {contact.name}
                 </p>
-                <p className="text-xs text-[#A8A29E] mt-1">{contact.phone}</p>
+                <p className="text-xs text-[#A8A29E] mt-1">+{contact.phone}</p>
                 <div className="flex gap-2 mt-3">
                   <a
                     href={`https://wa.me/${contact.phone}`}
@@ -70,7 +73,7 @@ export default function LocationPage() {
             Follow Us
           </h3>
           <a
-            href={FESTIVAL_CONFIG.instagram}
+            href={site.instagram}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white border border-[#E7E5E4] rounded-lg p-4 flex items-center gap-3"
@@ -114,7 +117,7 @@ export default function LocationPage() {
           </div>
           <div className="flex gap-2">
             <a
-              href={FESTIVAL_CONFIG.mapUrl}
+              href={site.mapUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 text-center bg-white border border-[#E7E5E4] rounded-lg px-4 py-3 text-xs font-medium text-[#1C1917]"
@@ -122,7 +125,7 @@ export default function LocationPage() {
               Get Directions
             </a>
             <a
-              href={FESTIVAL_CONFIG.mapUrl}
+              href={site.mapUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 text-center bg-white border border-[#E7E5E4] rounded-lg px-4 py-3 text-xs font-medium text-[#1C1917]"

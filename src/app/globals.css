@@ -442,6 +442,95 @@ button {
   outline-offset: 2px;
 }
 
+/* ── Filter chips: guaranteed-contrast state system ──────────────
+   Active MUST be deep maroon + warm ivory. Never white-on-white,
+   never cream-on-cream. Use on every tab / category / language /
+   filter control across public + admin UI. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  background-color: #ffffff;
+  color: #44403c;
+  border: 1px solid #d6d3d1;
+}
+
+.chip:hover {
+  border-color: #7c2d12;
+  color: #7c2d12;
+  background-color: #fff8f0;
+}
+
+.chip[data-active="true"] {
+  background-color: #6b2e2e;
+  border-color: #6b2e2e;
+  color: #fff8ee;
+  font-weight: 600;
+}
+
+.chip[data-active="true"]:hover {
+  background-color: #7c2d12;
+  border-color: #7c2d12;
+  color: #fff8ee;
+}
+
+.chip:focus-visible {
+  outline: 2px solid #d97706;
+  outline-offset: 2px;
+}
+
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Chips rendered on a dark maroon bar: active becomes ivory + maroon
+   so it stays visible; idle stays ivory text on transparent. */
+.chip-on-dark {
+  background-color: transparent;
+  border-color: rgba(255, 248, 238, 0.35);
+  color: #faf7f2;
+}
+
+.chip-on-dark:hover {
+  background-color: rgba(255, 248, 238, 0.12);
+  border-color: rgba(255, 248, 238, 0.6);
+  color: #fff8ee;
+}
+
+.chip-on-dark[data-active="true"] {
+  background-color: #fff8ee;
+  border-color: #fff8ee;
+  color: #6b2e2e;
+  font-weight: 700;
+}
+
+.chip-on-dark[data-active="true"]:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #6b2e2e;
+}
+
+.chip-on-dark:disabled {
+  opacity: 0.4;
+}
+
+/* Admin form controls: consistent visible focus */
+.admin-input:focus {
+  border-color: #7c2d12 !important;
+  box-shadow: 0 0 0 3px rgba(124, 45, 18, 0.15);
+  outline: none;
+}
+
 /* Reduced Motion */
 
 @media (prefers-reduced-motion: reduce) {

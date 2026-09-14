@@ -1,8 +1,13 @@
+"use client";
+
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { MANDAL_INFO, CONTACTS } from "@/data/info";
+import { MANDAL_INFO } from "@/data/info";
+import { useLiveSite } from "@/lib/public-data";
 
 export default function MandalPage() {
+  const { data: site } = useLiveSite();
+
   return (
     <>
       <Header />
@@ -16,21 +21,23 @@ export default function MandalPage() {
         <div className="space-y-4">
           {/* Name Card */}
           <div className="bg-white border border-[#E7E5E4] rounded-lg p-5 text-center">
-            <h2 className="text-lg font-bold text-[#7C2D12] font-gotu">{MANDAL_INFO.name}</h2>
-            <p className="text-[#57534E] text-sm mt-1">{MANDAL_INFO.location}</p>
-            <p className="text-[#A8A29E] text-xs mt-1">Est. {MANDAL_INFO.establishedYear}</p>
+            <h2 className="text-lg font-bold text-[#7C2D12] font-gotu">{site.mandalName}</h2>
+            <p className="text-[#57534E] text-sm mt-1">{site.location}</p>
+            {site.establishedYear > 0 && (
+              <p className="text-[#A8A29E] text-xs mt-1">Est. {site.establishedYear}</p>
+            )}
           </div>
 
           {/* About Us */}
           <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
             <h3 className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-2">About Us</h3>
-            <p className="text-[#57534E] text-sm leading-relaxed">{MANDAL_INFO.about}</p>
+            <p className="text-[#57534E] text-sm leading-relaxed">{site.about}</p>
           </div>
 
           {/* Our Mission */}
           <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
             <h3 className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-2">Our Mission</h3>
-            <p className="text-[#57534E] text-sm leading-relaxed">{MANDAL_INFO.mission}</p>
+            <p className="text-[#57534E] text-sm leading-relaxed">{site.mission}</p>
           </div>
 
           {/* Activities */}
@@ -68,7 +75,7 @@ export default function MandalPage() {
           <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
             <h3 className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-3">Contact</h3>
             <div className="space-y-3">
-              {CONTACTS.map((contact, i) => (
+              {site.contacts.map((contact, i) => (
                 <div key={i} className="flex items-center justify-between bg-[#FAF7F2] rounded-xl p-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#7C2D12] flex items-center justify-center shrink-0">
@@ -80,7 +87,7 @@ export default function MandalPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <a href={`tel:${contact.phone}`} aria-label={`Call ${contact.name}`}>
+                    <a href={`tel:+${contact.phone}`} aria-label={`Call ${contact.name}`}>
                       <svg className="w-5 h-5 text-[#7C2D12]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                       </svg>
@@ -105,7 +112,7 @@ export default function MandalPage() {
           <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
             <h3 className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-3">Follow Us</h3>
             <a
-              href="https://www.instagram.com/omsaimitramandalbhiwandi/"
+              href={site.instagram}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-[#57534E] text-sm hover:text-[#1C1917] transition-colors"

@@ -100,7 +100,7 @@ export default function MorePage() {
 
         <div className="mt-8 text-center">
           <Link
-            href="/admin"
+            href="/admin/login"
             className="text-[#A8A29E] opacity-30 text-[10px]"
           >
             Admin Access

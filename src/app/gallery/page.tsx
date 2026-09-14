@@ -4,36 +4,28 @@ import { useState } from "react";
 import Image from "next/image";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
+import { useLiveGallery } from "@/lib/public-data";
 
 const GALLERY_CATEGORIES = [
   { id: "all", label: "All" },
-  { id: "ganpati", label: "Ganpati 2026" },
-  { id: "decoration", label: "Decoration" },
+  { id: "festival", label: "Festival" },
+  { id: "ganpati", label: "Ganpati" },
   { id: "aarti", label: "Aarti" },
   { id: "events", label: "Events" },
-  { id: "cultural", label: "Cultural" },
-  { id: "behind-scenes", label: "Behind the Scenes" },
+  { id: "mandal", label: "Mandal" },
   { id: "visarjan", label: "Visarjan" },
-  { id: "previous", label: "Previous Years" },
-];
-
-const GALLERY_ITEMS = [
-  { id: "1", src: "/ganpati-hero.png", alt: "Ganpati Bappa", category: "ganpati" },
-  { id: "2", src: "/mandal-logo.png", alt: "Mandal Logo", category: "decoration" },
-  { id: "3", src: "/mandal-name.png", alt: "Mandal Name", category: "events" },
-  { id: "4", src: "/ganpati-hero.png", alt: "Ganpati Decoration", category: "decoration" },
-  { id: "5", src: "/ganpati-hero.png", alt: "Aarti Time", category: "aarti" },
-  { id: "6", src: "/ganpati-hero.png", alt: "Cultural Program", category: "cultural" },
+  { id: "other", label: "Other" },
 ];
 
 export default function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const { data: items } = useLiveGallery();
 
   const filtered =
     selectedCategory === "all"
-      ? GALLERY_ITEMS
-      : GALLERY_ITEMS.filter((item) => item.category === selectedCategory);
+      ? items
+      : items.filter((item) => item.category === selectedCategory);
 
   return (
     <>
@@ -59,13 +51,9 @@ export default function GalleryPage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className="shrink-0 px-3 py-1.5 rounded-full text-xs transition-all"
-              style={{
-                backgroundColor:
-                  selectedCategory === cat.id ? "#7C2D12" : "#FFFFFF",
-                color: selectedCategory === cat.id ? "#FFFFFF" : "#57534E",
-                border: `1px solid ${selectedCategory === cat.id ? "#7C2D12" : "#E7E5E4"}`,
-              }}
+              aria-pressed={selectedCategory === cat.id}
+              className="chip"
+              data-active={selectedCategory === cat.id}
             >
               {cat.label}
             </button>
@@ -85,6 +73,7 @@ export default function GalleryPage() {
                 alt={item.alt}
                 fill
                 className="object-cover"
+                unoptimized={item.src.startsWith("http")}
               />
             </button>
           ))}
@@ -116,6 +105,7 @@ export default function GalleryPage() {
             width={800}
             height={600}
             className="max-w-full max-h-[80vh] object-contain rounded-lg"
+            unoptimized={lightbox.startsWith("http")}
           />
         </div>
       )}

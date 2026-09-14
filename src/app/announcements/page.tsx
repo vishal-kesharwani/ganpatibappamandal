@@ -1,12 +1,17 @@
+"use client";
+
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { ANNOUNCEMENTS } from "@/data/announcements";
+import { useLiveAnnouncements } from "@/lib/public-data";
 
 export default function AnnouncementsPage() {
-  const sorted = [...ANNOUNCEMENTS].sort((a, b) => {
-    const p = { important: 0, event: 1, general: 2 };
-    return p[a.priority] - p[b.priority];
-  });
+  const { data: announcements } = useLiveAnnouncements();
+  const sorted = [...announcements]
+    .filter((a) => a.active)
+    .sort((a, b) => {
+      const p = { important: 0, event: 1, general: 2 };
+      return p[a.priority] - p[b.priority];
+    });
 
   return (
     <>

@@ -81,7 +81,7 @@ export default function Header() {
 
             <div className="mt-4 pt-3" style={{ borderTop: "1px solid #E7E5E4" }}>
               <Link
-                href="/admin"
+                href="/admin/login"
                 onClick={() => setMenuOpen(false)}
                 className="text-[10px] transition-colors duration-150"
                 style={{ color: "#57534E", opacity: 0.3 }}

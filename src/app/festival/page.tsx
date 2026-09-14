@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FESTIVAL_DAYS, FESTIVAL_CONFIG } from "@/data/festival";
-import { DAILY_SCHEDULES, CATEGORY_LABELS } from "@/data/schedule";
+import { FESTIVAL_CONFIG } from "@/data/festival";
+import { useLiveDays, useLiveEvents, categoryLabel } from "@/lib/public-data";
 import { getCurrentDay, formatTime12 } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
@@ -30,12 +30,14 @@ const DAY_ABBREV_MARATHI: Record<string, string> = {
 
 export default function FestivalPage() {
   const currentDay = getCurrentDay();
+  const { data: days } = useLiveDays();
+  const { events } = useLiveEvents();
   const [selectedDay, setSelectedDay] = useState(
     currentDay >= 1 && currentDay <= 7 ? currentDay : 1
   );
 
-  const dayData = FESTIVAL_DAYS.find((d) => d.day === selectedDay);
-  const schedule = DAILY_SCHEDULES.find((s) => s.day === selectedDay);
+  const dayData = days.find((d) => d.day === selectedDay);
+  const schedule = events.filter((e) => e.day === selectedDay);
 
   if (!dayData) return null;
 
@@ -67,7 +69,7 @@ export default function FestivalPage() {
             className="flex gap-2 overflow-x-auto pb-2"
             style={{ scrollbarWidth: "none" }}
           >
-            {FESTIVAL_DAYS.map((d) => {
+            {days.map((d) => {
               const isSelected = d.day === selectedDay;
               const dayCurrent = d.day === currentDay;
               const dateNum = new Date(d.date).getDate();
@@ -76,22 +78,24 @@ export default function FestivalPage() {
                 <button
                   key={d.day}
                   onClick={() => setSelectedDay(d.day)}
+                  aria-pressed={isSelected}
                   className="flex flex-col items-center rounded-lg px-3 py-2 text-xs transition-colors shrink-0"
                   style={{
-                    backgroundColor: isSelected ? "#7C2D12" : "#FFFFFF",
+                    backgroundColor: isSelected ? "#6B2E2E" : "#FFFFFF",
                     color: isSelected
-                      ? "#FFFFFF"
+                      ? "#FFF8EE"
                       : dayCurrent
                         ? "#EA580C"
                         : "#57534E",
                     border: `1px solid ${
                       isSelected
-                        ? "#7C2D12"
+                        ? "#6B2E2E"
                         : dayCurrent
                           ? "#EA580C"
                           : "#E7E5E4"
                     }`,
                     minWidth: "52px",
+                    fontWeight: isSelected ? 700 : 400,
                   }}
                 >
                   <span className="text-[10px] leading-none opacity-70">
@@ -129,6 +133,9 @@ export default function FestivalPage() {
                 style={{ color: "#1C1917" }}
               >
                 {dayData.dateMarathi}
+              </p>
+              <p className="mt-1 text-sm font-medium" style={{ color: "#7C2D12" }}>
+                {dayData.title}
               </p>
             </div>
             <div className="text-right">
@@ -170,14 +177,11 @@ export default function FestivalPage() {
           </div>
         </section>
 
-        {dayData.specialEvent && (
+        {dayData.theme && (
           <section className="mb-4">
             <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
-              <p className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-1">Special Event</p>
-              <p className="text-[#1C1917] text-sm font-bold font-gotu">{dayData.specialEvent}</p>
-              {dayData.specialEventTime && (
-                <p className="text-[#A8A29E] text-xs mt-1">{dayData.specialEventTime}</p>
-              )}
+              <p className="text-[10px] uppercase tracking-wider text-[#B45309] font-semibold mb-1">Theme</p>
+              <p className="text-[#1C1917] text-sm font-bold font-gotu">{dayData.theme}</p>
             </div>
           </section>
         )}
@@ -190,7 +194,7 @@ export default function FestivalPage() {
           </section>
         )}
 
-        {schedule && schedule.events.length > 0 && (
+        {schedule.length > 0 && (
           <section className="mb-8">
             <h2
               className="mb-4 text-xs font-semibold uppercase tracking-widest"
@@ -202,7 +206,7 @@ export default function FestivalPage() {
               className="divide-y"
               style={{ borderColor: "#E7E5E4" }}
             >
-              {schedule.events.map((event) => (
+              {schedule.map((event) => (
                 <div
                   key={event.id}
                   className="flex items-start gap-3 py-3"
@@ -219,17 +223,27 @@ export default function FestivalPage() {
                     style={{ backgroundColor: "#E7E5E4" }}
                   />
                   <div className="min-w-0 flex-1">
-                    <p
-                      className="font-gotu text-sm font-medium"
-                      style={{ color: "#1C1917" }}
-                    >
-                      {event.titleMarathi}
-                    </p>
+                    {event.aartiSlug ? (
+                      <Link
+                        href={`/aarti/${event.aartiSlug}`}
+                        className="font-gotu text-sm font-medium hover:text-[#7C2D12] hover:underline"
+                        style={{ color: "#1C1917" }}
+                      >
+                        {event.titleMarathi}
+                      </Link>
+                    ) : (
+                      <p
+                        className="font-gotu text-sm font-medium"
+                        style={{ color: "#1C1917" }}
+                      >
+                        {event.titleMarathi}
+                      </p>
+                    )}
                     <span
                       className="text-[10px]"
                       style={{ color: "#A8A29E" }}
                     >
-                      {CATEGORY_LABELS[event.category] || event.category}
+                      {categoryLabel(event.category)}
                     </span>
                     {event.description && (
                       <p

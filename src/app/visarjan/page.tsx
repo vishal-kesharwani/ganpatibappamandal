@@ -1,10 +1,15 @@
+"use client";
+
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import ShareVisarjanButton from "@/components/ShareVisarjanButton";
-import { VISARJAN_INFO } from "@/data/info";
 import { FESTIVAL_CONFIG } from "@/data/festival";
+import { useLiveSite } from "@/lib/public-data";
 
 export default function VisarjanPage() {
+  const { data: site } = useLiveSite();
+  const v = site.visarjan;
+
   return (
     <>
       <Header />
@@ -27,7 +32,7 @@ export default function VisarjanPage() {
         <div className="bg-white border rounded-lg overflow-hidden mb-4" style={{ borderColor: "#E7E5E4" }}>
           <div className="px-4 py-4 text-center">
             <p className="text-sm" style={{ color: "#57534E" }}>
-              {VISARJAN_INFO.dateMarathi}
+              {v.dateMarathi}
             </p>
             <p
               className="text-2xl font-bold font-gotu mt-1"
@@ -35,6 +40,11 @@ export default function VisarjanPage() {
             >
               Visarjan Day
             </p>
+            {v.status && v.status !== "scheduled" && (
+              <p className="mt-1 inline-block rounded-full bg-[#7C2D12] px-3 py-0.5 text-[10px] font-semibold text-white">
+                {v.status === "live" ? "Happening now" : "Completed"}
+              </p>
+            )}
           </div>
         </div>
 
@@ -58,7 +68,7 @@ export default function VisarjanPage() {
                   className="font-bold"
                   style={{ color: "#1C1917" }}
                 >
-                  {VISARJAN_INFO.processionStart}
+                  {v.processionStart}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -69,7 +79,7 @@ export default function VisarjanPage() {
                   className="font-bold"
                   style={{ color: "#1C1917" }}
                 >
-                  {VISARJAN_INFO.time}
+                  {v.time}
                 </span>
               </div>
             </div>
@@ -86,7 +96,7 @@ export default function VisarjanPage() {
               Procession Route
             </h3>
             <div className="space-y-2">
-              {VISARJAN_INFO.route.map((point, i) => (
+              {v.route.map((point, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
                     <div
@@ -95,12 +105,12 @@ export default function VisarjanPage() {
                         backgroundColor:
                           i === 0
                             ? "#EA580C"
-                            : i === VISARJAN_INFO.route.length - 1
+                            : i === v.route.length - 1
                               ? "#DC2626"
                               : "#E7E5E4",
                       }}
                     />
-                    {i < VISARJAN_INFO.route.length - 1 && (
+                    {i < v.route.length - 1 && (
                       <div
                         className="w-px h-6"
                         style={{ backgroundColor: "#E7E5E4" }}
@@ -129,7 +139,7 @@ export default function VisarjanPage() {
               Meeting Point
             </h3>
             <p className="text-sm" style={{ color: "#57534E" }}>
-              {VISARJAN_INFO.meetingPoint}
+              {v.meetingPoint}
             </p>
           </div>
 
@@ -144,7 +154,7 @@ export default function VisarjanPage() {
               Important Instructions
             </h3>
             <ul className="space-y-1.5">
-              {VISARJAN_INFO.instructions.map((inst, i) => (
+              {v.instructions.map((inst, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span
                     className="text-xs mt-0.5"
@@ -160,29 +170,31 @@ export default function VisarjanPage() {
             </ul>
           </div>
 
-          <div
-            className="bg-white border rounded-lg p-4"
-            style={{ borderColor: "#E7E5E4" }}
-          >
-            <h3
-              className="text-[10px] uppercase tracking-wider mb-2 font-semibold"
-              style={{ color: "#B45309" }}
+          {site.contacts[0] && (
+            <div
+              className="bg-white border rounded-lg p-4"
+              style={{ borderColor: "#E7E5E4" }}
             >
-              Emergency Contact
-            </h3>
-            <a
-              href={`tel:${VISARJAN_INFO.emergencyContact}`}
-              className="text-sm"
-              style={{ color: "#1C1917" }}
-            >
-              {VISARJAN_INFO.emergencyContact}
-            </a>
-          </div>
+              <h3
+                className="text-[10px] uppercase tracking-wider mb-2 font-semibold"
+                style={{ color: "#B45309" }}
+              >
+                Emergency Contact
+              </h3>
+              <a
+                href={`tel:+${site.contacts[0].phone}`}
+                className="text-sm"
+                style={{ color: "#1C1917" }}
+              >
+                {site.contacts[0].name} · +{site.contacts[0].phone}
+              </a>
+            </div>
+          )}
         </div>
 
         <div className="mt-6">
           <ShareVisarjanButton
-            text={`Visarjan - ${VISARJAN_INFO.dateMarathi}\nProcession: ${VISARJAN_INFO.processionStart}\n${FESTIVAL_CONFIG.name}`}
+            text={`Visarjan - ${v.dateMarathi}\nProcession: ${v.processionStart}\n${FESTIVAL_CONFIG.name}`}
           />
         </div>
       </main>
