@@ -118,6 +118,7 @@ export function staticDays(): DbDay[] {
 
 export function staticGallery(): DbGalleryItem[] {
   return [
+    { id: "0", src: "/ganpati-with-mandal-name.jpeg", alt: "Ganpati with Mandal Name", category: "ganpati" },
     { id: "1", src: "/ganpati-hero.png", alt: "Ganpati Bappa", category: "ganpati" },
     { id: "2", src: "/mandal-logo.png", alt: "Mandal Logo", category: "mandal" },
     { id: "3", src: "/mandal-name.png", alt: "Mandal Name", category: "events" },
