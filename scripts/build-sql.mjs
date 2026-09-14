@@ -1,5 +1,11 @@
--- Ganpati Mandal - Aarti Schema Migration
--- This creates the table schema only. For data, run supabase-aartis-seed.sql instead.
+﻿import { writeFileSync, appendFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const out = join(__dirname, "..", "supabase-aartis-seed.sql");
+
+const header = `-- Ganpati Mandal - Complete Aarti Seed Data (50 aartis)
+-- Run this ENTIRE file in Supabase SQL Editor
 
 DROP TABLE IF EXISTS aartis CASCADE;
 
@@ -36,3 +42,14 @@ CREATE POLICY "Admin full access on aartis" ON aartis
   WITH CHECK (true);
 
 ALTER TABLE schedule_events ADD COLUMN IF NOT EXISTS time_end TIME;
+
+`;
+
+writeFileSync(out, header, "utf8");
+
+// Now import and run both generators
+await import("./gen-part1.mjs");
+await import("./gen-part2.mjs");
+
+appendFileSync(out, "\n-- Done! 50 aartis seeded.\n", "utf8");
+console.log("Complete SQL file generated!");
