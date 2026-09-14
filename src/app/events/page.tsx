@@ -1,213 +1,237 @@
 "use client";
-import { useState } from "react";
-import { DAILY_SCHEDULES, CATEGORY_LABELS } from "@/data/schedule";
-import { FESTIVAL_CONFIG } from "@/data/festival";
-import { formatTime12, getCurrentDay, generateCalendarUrl } from "@/lib/utils";
-import BottomNav from "@/components/BottomNav";
+
+import { useState, useMemo } from "react";
+import { Calendar, Share2, Clock, MapPin } from "lucide-react";
 import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
+import { DAILY_SCHEDULES, CATEGORY_LABELS } from "@/data/schedule";
+import { formatTime12, getCurrentDay, generateCalendarUrl } from "@/lib/utils";
 
-const categories = [
-  { id: "all", label: "All" },
-  { id: "aarti", label: "Aarti" },
-  { id: "cultural", label: "Cultural" },
-  { id: "children", label: "Children" },
-  { id: "bhajan", label: "Bhajan" },
-  { id: "dindi", label: "Dindi" },
-  { id: "dhol-tasha", label: "Dhol-Tasha" },
-  { id: "competition", label: "Competition" },
-  { id: "prasad", label: "Mahaprasad" },
-  { id: "social", label: "Social" },
-  { id: "visarjan", label: "Visarjan" },
-];
-
-const categoryEmojis: Record<string, string> = {
-  aarti: "🪔",
-  cultural: "🎭",
-  children: "🎈",
-  bhajan: "🎵",
-  dindi: "🥁",
-  "dhol-tasha": "🥁",
-  competition: "🏆",
-  prasad: "🍽️",
-  social: "🤝",
-  visarjan: "🌊",
+const CATEGORY_COLORS: Record<string, string> = {
+  aarti: "#7C2D12",
+  cultural: "#EA580C",
+  children: "#B45309",
+  bhajan: "#9A3412",
+  dindi: "#C2410C",
+  "dhol-tasha": "#D97706",
+  competition: "#A16207",
+  prasad: "#7C2D12",
+  social: "#57534E",
+  visarjan: "#7C2D12",
 };
 
 export default function EventsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDay, setSelectedDay] = useState(getCurrentDay() || 1);
   const currentDay = getCurrentDay();
-  const daySchedule = DAILY_SCHEDULES.find((s) => s.day === selectedDay);
-  const filteredEvents = daySchedule
-    ? selectedCategory === "all"
-      ? daySchedule.events
-      : daySchedule.events.filter((e) => e.category === selectedCategory)
-    : [];
+  const [selectedDay, setSelectedDay] = useState(currentDay >= 1 && currentDay <= 7 ? currentDay : 1);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const daySchedule = useMemo(
+    () => DAILY_SCHEDULES.find((d) => d.day === selectedDay),
+    [selectedDay]
+  );
+
+  const availableCategories = useMemo(() => {
+    if (!daySchedule) return [];
+    const cats = new Set(daySchedule.events.map((e) => e.category));
+    return Array.from(cats);
+  }, [daySchedule]);
+
+  const filteredEvents = useMemo(() => {
+    if (!daySchedule) return [];
+    if (!selectedCategory) return daySchedule.events;
+    return daySchedule.events.filter((e) => e.category === selectedCategory);
+  }, [daySchedule, selectedCategory]);
+
+  const handleShare = (title: string, date: string, time: string) => {
+    const text = `${title} - OM SAI MITRA MANDAL`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  };
 
   return (
-    <>
+    <div className="min-h-screen" style={{ backgroundColor: "#FAF7F2" }}>
       <Header />
-      <div className="max-w-lg mx-auto px-4 py-4 pb-24">
+
+      <main className="mx-auto max-w-md px-4 pb-24 pt-4">
         {/* Title */}
-        <div className="text-center mb-5">
-          <h1 className="text-xl font-bold text-gradient-saffron font-gotu">Events & Programs</h1>
-          <p className="text-cream-dim text-xs mt-1 font-gotu">कार्यक्रम</p>
-        </div>
-
-        {/* Day selector */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4 mb-4 -mx-4 px-4">
-          {[1, 2, 3, 4, 5, 6, 7].map((day) => {
-            const isSelected = day === selectedDay;
-            const isToday = day === currentDay;
-            return (
-              <button
-                key={day}
-                onClick={() => setSelectedDay(day)}
-                className={`shrink-0 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                  isSelected
-                    ? "gradient-saffron text-white font-bold shadow-lg"
-                    : isToday
-                    ? "bg-card-bg border border-saffron/30 text-saffron"
-                    : "bg-card-bg border border-card-border text-cream-muted"
-                }`}
-              >
-                Day {day}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-medium transition-all ${
-                selectedCategory === cat.id
-                  ? "bg-saffron text-white font-bold"
-                  : "bg-card-bg border border-card-border text-cream-dim"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Events count */}
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-cream-dim text-xs">
-            {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""}
+        <div className="mb-6">
+          <h1
+            className="text-2xl font-bold tracking-tight"
+            style={{ fontFamily: "'Gotu Devanagari', serif", color: "#7C2D12" }}
+          >
+            Events & Programs
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: "#A8A29E" }}>
+            कार्यक्रम
           </p>
-          {currentDay === selectedDay && (
-            <span className="bg-saffron/10 text-saffron text-[10px] px-2 py-0.5 rounded-full font-bold">
-              Today
-            </span>
-          )}
         </div>
 
-        {/* Events list */}
+        {/* Day Selector */}
+        <div className="mb-5">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
+            {Array.from({ length: 7 }, (_, i) => i + 1).map((day) => {
+              const isSelected = day === selectedDay;
+              const isToday = day === currentDay;
+              return (
+                <button
+                  key={day}
+                  onClick={() => {
+                    setSelectedDay(day);
+                    setSelectedCategory(null);
+                  }}
+                  className="flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: isSelected ? "#7C2D12" : "white",
+                    color: isSelected ? "white" : "#57534E",
+                    border: isToday && !isSelected ? "2px solid #EA580C" : "1px solid #E7E5E4",
+                  }}
+                >
+                  Day {day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date Display */}
+        {daySchedule && (
+          <p className="mb-4 text-xs font-medium uppercase tracking-wider" style={{ color: "#A8A29E" }}>
+            {new Date(daySchedule.date).toLocaleDateString("en-IN", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        )}
+
+        {/* Category Chips */}
+        {availableCategories.length > 0 && (
+          <div className="mb-5">
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: !selectedCategory ? "#7C2D12" : "white",
+                  color: !selectedCategory ? "white" : "#57534E",
+                  border: "1px solid #E7E5E4",
+                }}
+              >
+                All
+              </button>
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                  className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+                  style={{
+                    backgroundColor: selectedCategory === cat ? (CATEGORY_COLORS[cat] || "#7C2D12") : "white",
+                    color: selectedCategory === cat ? "white" : "#57534E",
+                    border: "1px solid #E7E5E4",
+                  }}
+                >
+                  {CATEGORY_LABELS[cat] || cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Events List */}
         <div className="space-y-3">
           {filteredEvents.length === 0 && (
-            <div className="text-center py-12">
-              <span className="text-4xl">📅</span>
-              <p className="text-cream-muted text-sm mt-3">No events found</p>
-              <p className="text-cream-dim text-xs mt-1">Try a different day or category</p>
+            <div className="rounded-lg border p-6 text-center" style={{ backgroundColor: "white", borderColor: "#E7E5E4" }}>
+              <p className="text-sm" style={{ color: "#A8A29E" }}>
+                No events for this day.
+              </p>
             </div>
           )}
 
-          {filteredEvents.map((event, idx) => {
-            const isAarti = event.category === "aarti";
-            const isFeatured = idx === 0 && currentDay === selectedDay;
-
+          {filteredEvents.map((event) => {
+            const categoryColor = CATEGORY_COLORS[event.category] || "#7C2D12";
             return (
               <div
                 key={event.id}
-                className={`surface-card overflow-hidden ${
-                  isFeatured ? "border-saffron/30 card-glow" : ""
-                }`}
+                className="rounded-lg border p-4"
+                style={{ backgroundColor: "white", borderColor: "#E7E5E4" }}
               >
-                {/* Featured banner */}
-                {isFeatured && (
-                  <div className="gradient-saffron px-4 py-1.5">
-                    <p className="text-white text-[10px] font-bold uppercase tracking-wider text-center">
-                      Happening Now / Next
-                    </p>
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} style={{ color: "#A8A29E" }} />
+                    <span className="text-sm font-semibold" style={{ color: "#7C2D12" }}>
+                      {formatTime12(event.time)}
+                      {event.timeEnd && ` - ${formatTime12(event.timeEnd)}`}
+                    </span>
+                  </div>
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    style={{ backgroundColor: `${categoryColor}15`, color: categoryColor }}
+                  >
+                    {CATEGORY_LABELS[event.category] || event.category}
+                  </span>
+                </div>
+
+                <h3 className="text-base font-semibold" style={{ color: "#1C1917" }}>
+                  {event.titleMarathi}
+                </h3>
+                <p className="mt-0.5 text-xs" style={{ color: "#A8A29E" }}>
+                  {event.title}
+                </p>
+
+                {event.description && (
+                  <p className="mt-2 text-sm leading-relaxed" style={{ color: "#57534E" }}>
+                    {event.description}
+                  </p>
+                )}
+
+                {event.location && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <MapPin size={12} style={{ color: "#A8A29E" }} />
+                    <span className="text-xs" style={{ color: "#A8A29E" }}>
+                      {event.location}
+                    </span>
                   </div>
                 )}
 
-                <div className="p-4">
-                  <div className="flex items-start gap-4">
-                    {/* Time */}
-                    <div className="text-right shrink-0 w-16">
-                      <p className="text-cream text-xs font-mono font-bold">
-                        {formatTime12(event.time)}
-                      </p>
-                      {event.timeEnd && (
-                        <p className="text-cream-dim text-[10px] font-mono">
-                          {formatTime12(event.timeEnd)}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="w-px bg-card-border self-stretch shrink-0" />
-
-                    {/* Event content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-2">
-                        <span className="text-lg shrink-0">
-                          {categoryEmojis[event.category] || "📅"}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-cream font-gotu ${isFeatured ? "text-lg font-bold" : "text-sm font-bold"}`}>
-                            {event.titleMarathi}
-                          </p>
-                          <p className="text-cream-dim text-[10px] mt-0.5">
-                            {CATEGORY_LABELS[event.category] || event.category}
-                          </p>
-                        </div>
-                      </div>
-
-                      {event.description && (
-                        <p className="text-cream-muted text-xs font-gotu mt-2 leading-relaxed">
-                          {event.description}
-                        </p>
-                      )}
-
-                      {/* Actions */}
-                      <div className="flex gap-3 mt-3">
-                        <a
-                          href={generateCalendarUrl(
-                            event.titleMarathi,
-                            daySchedule?.date || "2026-09-14",
-                            event.time,
-                            event.description
-                          )}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-cream-dim text-[10px] hover:text-saffron transition-colors flex items-center gap-1"
-                        >
-                          📅 Calendar
-                        </a>
-                        <button
-                          onClick={() => {
-                            const text = `${event.titleMarathi}\n${formatTime12(event.time)} - ${event.timeEnd ? formatTime12(event.timeEnd) : ""}\n${FESTIVAL_CONFIG.name}`;
-                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-                          }}
-                          className="text-cream-dim text-[10px] hover:text-green-500 transition-colors flex items-center gap-1"
-                        >
-                          📱 WhatsApp
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                <div className="mt-3 flex items-center gap-2 border-t pt-3" style={{ borderColor: "#E7E5E4" }}>
+                  <a
+                    href={generateCalendarUrl(
+                      `${event.titleMarathi} - OM SAI MITRA MANDAL`,
+                      daySchedule?.date || "",
+                      event.time,
+                      event.description
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                    style={{
+                      backgroundColor: "#EA580C10",
+                      color: "#EA580C",
+                    }}
+                  >
+                    <Calendar size={12} />
+                    Add to Calendar
+                  </a>
+                  <button
+                    onClick={() => handleShare(event.titleMarathi, daySchedule?.date || "", event.time)}
+                    className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                    style={{
+                      backgroundColor: "#25D36610",
+                      color: "#25D366",
+                    }}
+                  >
+                    <Share2 size={12} />
+                    Share
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </main>
+
       <BottomNav />
-    </>
+    </div>
   );
 }

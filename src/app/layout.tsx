@@ -24,7 +24,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#800020",
+  themeColor: "#FAF7F2",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -36,8 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Ganpati Mandal" />
         <link rel="apple-touch-icon" href="/mandal-logo.png" />
+        <meta name="theme-color" content="#7C2D12" />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
+      <body className="min-h-dvh flex flex-col text-[#1C1917] antialiased">
         <main className="flex-1 pb-20">{children}</main>
       </body>
     </html>

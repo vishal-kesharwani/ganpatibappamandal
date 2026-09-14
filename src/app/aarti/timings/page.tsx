@@ -1,49 +1,93 @@
-import Link from "next/link";
-import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
 
 const AARTI_TIMINGS = [
-  { time: "06:00", label: "Kakad Aarti", labelMarathi: "काकड आरती", period: "Morning", icon: "🌅" },
-  { time: "12:30", label: "Madhyan Aarti", labelMarathi: "माध्यान्ह आरती", period: "Afternoon", icon: "☀️" },
-  { time: "20:30", label: "Sandhyakalin Aarti", labelMarathi: "संध्याकाळची आरती", period: "Evening", icon: "🌇" },
-  { time: "22:00", label: "Sheja Aarti", labelMarathi: "शेज आरती", period: "Night", icon: "🌙" },
+  {
+    time: "06:00",
+    nameMarathi: "काकड आरती",
+    nameEnglish: "Kakad Aarti",
+    period: "Morning",
+  },
+  {
+    time: "12:30",
+    nameMarathi: "माध्यान्ह आरती",
+    nameEnglish: "Madhyanna Aarti",
+    period: "Afternoon",
+  },
+  {
+    time: "18:30",
+    nameMarathi: "संध्याकाळची आरती",
+    nameEnglish: "Sandhyakalin Aarti",
+    period: "Evening",
+  },
+  {
+    time: "22:00",
+    nameMarathi: "शेज आरती",
+    nameEnglish: "Sheja Aarti",
+    period: "Night",
+  },
 ];
-
-function formatTime(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${m.toString().padStart(2, "0")} ${period}`;
-}
 
 export default function AartiTimingsPage() {
   return (
     <>
       <Header />
-      <div className="max-w-lg mx-auto px-4 py-4 pb-24">
+      <main
+        className="max-w-lg mx-auto px-4 py-4 pb-24"
+        style={{ backgroundColor: "#FAF7F2", minHeight: "100vh" }}
+      >
         <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-gradient-saffron font-gotu">Aarti Timings</h1>
-          <p className="text-cream/40 text-xs mt-1">आरती वेळापत्रक</p>
+          <h1
+            className="text-xl font-bold font-gotu"
+            style={{ color: "#1C1917" }}
+          >
+            Aarti Timings
+          </h1>
+          <p className="text-xs mt-1" style={{ color: "#A8A29E" }}>
+            आरती वेळापत्रक
+          </p>
         </div>
+
         <div className="space-y-3">
-          {AARTI_TIMINGS.map((aarti, i) => (
-            <div key={i} className="bg-card-bg border border-card-border rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl gradient-saffron flex items-center justify-center shrink-0"><span className="text-xl">{aarti.icon}</span></div>
-                <div className="flex-1">
-                  <p className="text-cream/40 text-[10px] uppercase">{aarti.period}</p>
-                  <p className="text-cream font-bold font-gotu">{aarti.labelMarathi}</p>
-                  <p className="text-cream/30 text-[10px]">{aarti.label}</p>
-                </div>
-                <p className="text-gold font-bold font-gotu text-lg">{formatTime(aarti.time)}</p>
+          {AARTI_TIMINGS.map((aarti) => (
+            <div
+              key={aarti.time}
+              className="bg-white border rounded-lg p-4 flex items-center gap-4"
+              style={{ borderColor: "#E7E5E4" }}
+            >
+              <div className="shrink-0">
+                <p
+                  className="text-2xl font-bold font-gotu"
+                  style={{ color: "#7C2D12" }}
+                >
+                  {aarti.time}
+                </p>
+              </div>
+              <div className="flex-1">
+                <p
+                  className="font-bold font-gotu"
+                  style={{ color: "#1C1917" }}
+                >
+                  {aarti.nameMarathi}
+                </p>
+                <p className="text-sm" style={{ color: "#57534E" }}>
+                  {aarti.nameEnglish}
+                </p>
+                <p className="text-[10px]" style={{ color: "#A8A29E" }}>
+                  {aarti.period}
+                </p>
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-6 bg-card-bg border border-card-border rounded-xl p-4 text-center">
-          <p className="text-cream/40 text-xs">All timings may change. Please confirm with the Mandal.</p>
+
+        <div className="mt-6 text-center">
+          <p className="text-xs" style={{ color: "#A8A29E" }}>
+            Timings may vary on special days. Please check the daily schedule for
+            exact timings.
+          </p>
         </div>
-      </div>
+      </main>
       <BottomNav />
     </>
   );

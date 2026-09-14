@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-const menuLinks = [
+const navLinks = [
   { href: "/", label: "Home" },
   { href: "/festival", label: "Festival Diary" },
   { href: "/aarti", label: "Aarti Library" },
-  { href: "/aarti/timings", label: "Aarti Timings" },
   { href: "/events", label: "Events & Programs" },
   { href: "/gallery", label: "Photo Gallery" },
   { href: "/info", label: "Ganpati Information" },
-  { href: "/visarjan", label: "Visarjan Details" },
+  { href: "/visarjan", label: "Visarjan" },
   { href: "/mandal", label: "About Mandal" },
   { href: "/location", label: "Location & Contact" },
   { href: "/donation", label: "Support / Donate" },
@@ -23,51 +23,80 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-temple-bg/95 backdrop-blur-xl border-b border-card-border">
-      <div className="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2.5">
+    <header className="sticky top-0 z-50" style={{ backgroundColor: "#FAF7F2", borderBottom: "1px solid #E7E5E4" }}>
+      <div className="mx-auto flex h-14 max-w-md items-center justify-between px-4 py-3">
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/mandal-logo.png"
-            alt="OM SAI MITRA MANDAL"
-            width={32}
-            height={32}
+            alt="Logo"
+            width={28}
+            height={28}
             className="rounded-full"
           />
-          <div className="hidden sm:block">
-            <p className="text-[10px] text-cream-dim font-gotu leading-tight">श्री गणेशाय नमः</p>
-          </div>
+          <span className="font-gotu text-sm font-semibold tracking-wide" style={{ color: "#7C2D12" }}>
+            OM SAI MITRA MANDAL
+          </span>
         </Link>
 
         <button
+          type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="p-2 rounded-xl hover:bg-card-bg transition-colors"
-          aria-label="Menu"
+          className="p-1"
+          style={{ color: "#7C2D12" }}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
-          <svg className="w-6 h-6 text-cream" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            {menuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            )}
-          </svg>
+          {menuOpen ? <X size={22} strokeWidth={2} /> : <Menu size={22} strokeWidth={2} />}
         </button>
       </div>
 
       {menuOpen && (
-        <div className="bg-temple-bg border-t border-card-border animate-slide-up">
-          <div className="max-w-lg mx-auto px-4 py-3 space-y-1">
-            {menuLinks.map((link) => (
+        <nav
+          className="w-full"
+          style={{
+            backgroundColor: "#FAF7F2",
+            borderTop: "1px solid #E7E5E4",
+          }}
+        >
+          <div className="mx-auto max-w-md px-4 py-3">
+            <ul className="flex flex-col">
+              {navLinks.map((link) => (
+                <li key={link.href} style={{ borderBottom: "1px solid #E7E5E4" }}>
+                  <Link
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="block py-3 text-sm transition-colors duration-150"
+                    style={{ color: "#57534E" }}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.color = "#7C2D12";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.color = "#57534E";
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-4 pt-3" style={{ borderTop: "1px solid #E7E5E4" }}>
               <Link
-                key={link.href}
-                href={link.href}
+                href="/admin"
                 onClick={() => setMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-xl text-cream-muted hover:bg-card-bg hover:text-saffron transition-colors text-sm"
+                className="text-[10px] transition-colors duration-150"
+                style={{ color: "#57534E", opacity: 0.3 }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.color = "#7C2D12";
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.color = "#57534E";
+                }}
               >
-                {link.label}
+                Admin
               </Link>
-            ))}
+            </div>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );
