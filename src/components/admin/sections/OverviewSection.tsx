@@ -27,12 +27,28 @@ interface TodayEvent {
   category: string;
 }
 
-const DAY_STARTS = ["2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-19", "2026-09-20"];
+const FALLBACK_DAY_STARTS = ["2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-19", "2026-09-20"];
 
-function festivalDayToday(): number {
+async function festivalDayToday(): Promise<number> {
+  let starts = FALLBACK_DAY_STARTS;
+  try {
+    const { data } = await supabase
+      .from("festival_days")
+      .select("date,day_number")
+      .eq("active", true)
+      .order("day_number", { ascending: true });
+    if (data && data.length > 0) {
+      starts = (data as { date: string; day_number: number }[])
+        .slice()
+        .sort((a, b) => a.day_number - b.day_number)
+        .map((d) => d.date);
+    }
+  } catch {
+    starts = FALLBACK_DAY_STARTS;
+  }
   const t = new Date();
   const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
-  const idx = DAY_STARTS.indexOf(iso);
+  const idx = starts.indexOf(iso);
   return idx >= 0 ? idx + 1 : 0;
 }
 
@@ -41,12 +57,15 @@ export default function OverviewSection() {
   const [todayEvents, setTodayEvents] = useState<TodayEvent[]>([]);
   const [recent, setRecent] = useState<{ label: string; href: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const today = festivalDayToday();
+  const [today, setToday] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
+        const todayNum = await festivalDayToday();
+        if (cancelled) return;
+        setToday(todayNum);
         const [a, e, n, g, d] = await Promise.all([
           supabase.from("aartis").select("id", { count: "exact", head: true }),
           supabase.from("schedule_events").select("id", { count: "exact", head: true }).eq("active", true),
@@ -60,12 +79,12 @@ export default function OverviewSection() {
           supabase.from("announcements").select("title").order("created_at", { ascending: false }).limit(2),
         ]);
         let todays: TodayEvent[] = [];
-        if (today >= 1 && today <= 7) {
+        if (todayNum >= 1 && todayNum <= 7) {
           const { data } = await supabase
             .from("schedule_events")
             .select("id,day,time,time_end,title,title_marathi,category")
             .eq("active", true)
-            .eq("day", today)
+            .eq("day", todayNum)
             .order("sort_order", { ascending: true })
             .order("time", { ascending: true });
           todays = (data || []) as TodayEvent[];
@@ -91,7 +110,7 @@ export default function OverviewSection() {
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, []);
 
   if (loading) return <Spinner label="Loading live stats…" />;
 

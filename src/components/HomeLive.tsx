@@ -71,6 +71,79 @@ function NowCard({ events }: { events: DbEvent[] }) {
   );
 }
 
+/** Live festival date range, e.g. "१४ सप्टेंबर — २० सप्टेंबर २०२६". */
+export function FestivalDateRange({ className = "" }: { className?: string }) {
+  const { data: days } = useLiveDays();
+  if (days.length === 0) return null;
+  const first = days[0].dateMarathi.split(" ");
+  const last = days[days.length - 1].dateMarathi;
+  const range = `${first.slice(0, 2).join(" ")} — ${last}`;
+  return <p className={className}>{range}</p>;
+}
+
+/** Live "Day X of N" festival status card with progress dots. */
+export function FestivalStatusCard() {
+  const currentDay = getCurrentDay();
+  const festivalActive = isFestivalActive();
+  const { data: days } = useLiveDays();
+  const total = days.length || 7;
+  const todayMeta = days.find((d) => d.day === currentDay);
+
+  if (!festivalActive || currentDay < 1 || currentDay > total) return null;
+
+  return (
+    <section className="px-5 pb-8">
+      <div className="rounded-lg border border-[#E7E5E4] bg-white p-6 text-center">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-[#A8A29E]">
+          Festival Status
+        </p>
+        <p className="font-gotu text-3xl text-[#7C2D12]">
+          Day {currentDay} of {total}
+        </p>
+
+        <div className="mt-5 flex items-center justify-center gap-2">
+          {Array.from({ length: total }, (_, i) => (
+            <div
+              key={i}
+              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
+                i < currentDay
+                  ? "bg-[#EA580C]"
+                  : i === currentDay - 1
+                    ? "bg-[#7C2D12] ring-2 ring-[#7C2D12]/20"
+                    : "bg-[#E7E5E4]"
+              }`}
+            />
+          ))}
+        </div>
+
+        {todayMeta && (
+          <p className="mt-4 font-gotu text-xs text-[#A8A29E]">
+            {todayMeta.dateMarathi} · {todayMeta.dayOfWeekMarathi}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Live pre-festival note showing the actual start date. */
+export function PreFestivalNote() {
+  const currentDay = getCurrentDay();
+  const festivalActive = isFestivalActive();
+  const { data: days } = useLiveDays();
+  if (festivalActive || currentDay !== 0 || days.length === 0) return null;
+  return (
+    <section className="px-5 pb-8">
+      <div className="text-center">
+        <p className="text-sm text-[#57534E]">Ganpati Festival starts soon!</p>
+        <p className="mt-2 font-gotu text-xl font-bold text-[#7C2D12]">
+          {days[0].dateMarathi}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export function JourneyStrip() {
   const currentDay = getCurrentDay();
   const festivalActive = isFestivalActive();

@@ -1,15 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FESTIVAL_CONFIG, FESTIVAL_DAYS } from "@/data/festival";
+import { FESTIVAL_CONFIG } from "@/data/festival";
 import { getCurrentDay, isFestivalActive } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
-import HomeLive, { JourneyStrip } from "@/components/HomeLive";
+import HomeLive, {
+  JourneyStrip,
+  FestivalStatusCard,
+  PreFestivalNote,
+  FestivalDateRange,
+} from "@/components/HomeLive";
 
 export default function HomePage() {
   const currentDay = getCurrentDay();
   const festivalActive = isFestivalActive();
-  const todayData = FESTIVAL_DAYS.find((d) => d.day === currentDay);
 
   return (
     <>
@@ -43,59 +47,16 @@ export default function HomePage() {
               <p className="text-sm text-[#57534E]">
                 Ganeshotsav 2026
               </p>
-              <p className="text-xs text-[#A8A29E] font-gotu">
-                १४ सप्टेंबर — २० सप्टेंबर
-              </p>
+              <FestivalDateRange className="text-xs text-[#A8A29E] font-gotu" />
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════
-            SECTION 2: DAY COUNTER
+            SECTION 2: DAY COUNTER + PRE-FESTIVAL (live from database)
         ═══════════════════════════════════════════ */}
-        {festivalActive && currentDay >= 1 && currentDay <= 7 && (
-          <section className="px-5 pb-8">
-            <div className="bg-white border border-[#E7E5E4] rounded-lg p-6 text-center">
-              <p className="text-[10px] text-[#A8A29E] uppercase tracking-wider mb-2">
-                Festival Status
-              </p>
-              <p className="text-3xl font-gotu text-[#7C2D12]">
-                Day {currentDay} of 7
-              </p>
-
-              <div className="flex items-center justify-center gap-2 mt-5">
-                {Array.from({ length: 7 }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                      i < currentDay
-                        ? "bg-[#EA580C]"
-                        : i === currentDay - 1
-                        ? "bg-[#7C2D12] ring-2 ring-[#7C2D12]/20"
-                        : "bg-[#E7E5E4]"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <p className="text-xs text-[#A8A29E] font-gotu mt-4">
-                {todayData?.dateMarathi} · {todayData?.dayOfWeekMarathi}
-              </p>
-            </div>
-          </section>
-        )}
-
-        {/* Pre-festival */}
-        {!festivalActive && currentDay === 0 && (
-          <section className="px-5 pb-8">
-            <div className="text-center">
-              <p className="text-sm text-[#57534E]">Ganpati Festival starts soon!</p>
-              <p className="text-[#7C2D12] text-xl font-bold font-gotu mt-2">
-                १४ सप्टेंबर २०२६
-              </p>
-            </div>
-          </section>
-        )}
+        <FestivalStatusCard />
+        <PreFestivalNote />
 
         {/* Post-festival */}
         {!festivalActive && currentDay > 7 && (
@@ -203,7 +164,7 @@ export default function HomePage() {
             <div>
               <p className="text-[10px] text-[#A8A29E] font-semibold">{FESTIVAL_CONFIG.name}</p>
               <p className="text-[9px] text-[#A8A29E]/60 mt-0.5">{FESTIVAL_CONFIG.address}</p>
-              <p className="text-[9px] text-[#A8A29E]/60">१४ सप्टेंबर — २० सप्टेंबर २०२६</p>
+              <FestivalDateRange className="text-[9px] text-[#A8A29E]/60" />
             </div>
 
             {/* Navigation Links */}
