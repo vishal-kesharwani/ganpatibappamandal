@@ -218,6 +218,9 @@ export default function HomePage() {
             <p className="text-[9px] text-[#A8A29E]/40">
               © 2026 {FESTIVAL_CONFIG.name}. All Rights Reserved.
             </p>
+            <p className="text-[9px] text-[#A8A29E]/40">
+              Made with ❤️ devotion by Vishal Kesharwani
+            </p>
           </div>
         </footer>
       </div>
