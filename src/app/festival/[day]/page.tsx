@@ -11,8 +11,8 @@ export function generateStaticParams() {
   return FESTIVAL_DAYS.map((day) => ({ day: String(day.day) }));
 }
 
-export default async function DayDetailPage({ params }: { params: Promise<{ day: string }> }) {
-  const { day: dayStr } = await params;
+export default async function DayDetailPage({ params }: { params: { day: string } }) {
+  const { day: dayStr } = params;
   const dayNum = parseInt(dayStr);
   if (isNaN(dayNum) || dayNum < 1 || dayNum > 7) notFound();
   const dayData = FESTIVAL_DAYS.find((d) => d.day === dayNum);
