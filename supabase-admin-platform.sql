@@ -1,9 +1,17 @@
 -- =====================================================================
 -- OM SAI MITRA MANDAL — Admin Platform Migration (ADDITIVE & SAFE)
 -- =====================================================================
--- Run this in the Supabase SQL Editor AFTER supabase-schema.sql /
--- supabase-aartis-seed.sql. It never DROPs tables and never deletes
--- existing rows. It only ADDs tables/columns/policies/indexes.
+-- Self-contained: runs in ONE pass on a completely fresh Supabase
+-- database AND safely re-runs on the existing production database.
+-- It never DROPs tables and never deletes existing rows — only ADDs
+-- tables / columns / constraints / indexes / policies / triggers.
+--
+-- STRICT DEPENDENCY ORDER (do not reorder):
+--   1. base tables (aartis, schedule_events, announcements) IF NOT EXISTS
+--   2. admin_users table (references auth.users)
+--   3. public.is_admin() function (queries admin_users)
+--   4. RLS policies (may call public.is_admin())
+--   5. alters / indexes / seeds / triggers
 --
 -- After running:
 --   1. Create an admin user in Supabase Dashboard → Authentication → Users
@@ -15,8 +23,79 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- 0. Helper: is the current JWT an admin? (SECURITY DEFINER avoids
---    RLS recursion on admin_users.)
+-- 1. Base tables — created ONLY when missing (fresh database).
+--    On production these already exist, so these statements are no-ops
+--    and all existing rows are preserved untouched.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.aartis (
+  id BIGSERIAL PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  title_devanagari TEXT NOT NULL,
+  deity TEXT NOT NULL,
+  category TEXT NOT NULL,
+  language TEXT NOT NULL,
+  type TEXT NOT NULL,
+  lyrics TEXT NOT NULL,
+  transliteration TEXT,
+  description TEXT,
+  source TEXT NOT NULL,
+  source_url TEXT,
+  content_status TEXT NOT NULL DEFAULT 'needs_verification',
+  verified BOOLEAN NOT NULL DEFAULT FALSE,
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.schedule_events (
+  id BIGSERIAL PRIMARY KEY,
+  day INTEGER NOT NULL CHECK (day BETWEEN 1 AND 7),
+  time TEXT NOT NULL,
+  time_end TEXT,
+  title TEXT NOT NULL,
+  title_marathi TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'general',
+  description TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  location TEXT,
+  aarti_id BIGINT REFERENCES public.aartis(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.announcements (
+  id BIGSERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  title_marathi TEXT NOT NULL,
+  description TEXT NOT NULL,
+  description_marathi TEXT NOT NULL,
+  priority TEXT NOT NULL DEFAULT 'normal',
+  active BOOLEAN DEFAULT TRUE,
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ---------------------------------------------------------------------
+-- 2. admin_users — MUST exist before is_admin() and before any policy
+--    that references it. References auth.users(id) (Supabase Auth).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.admin_users (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('admin', 'editor')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------------------------------------------------
+-- 3. public.is_admin() — created AFTER admin_users exists.
+--    SECURITY DEFINER lets RLS policies check the role without
+--    recursing into admin_users RLS.
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
@@ -31,26 +110,17 @@ AS $$
 $$;
 
 -- ---------------------------------------------------------------------
--- 1. admin_users — maps Supabase Auth users to the admin role
+-- 4. admin_users RLS — users may read ONLY their own row.
+--    Rows are managed from the Supabase Dashboard SQL editor,
+--    intentionally not writable from client code.
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.admin_users (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL UNIQUE,
-  role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('admin', 'editor')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users read own admin row" ON public.admin_users;
 CREATE POLICY "Users read own admin row"
   ON public.admin_users FOR SELECT TO authenticated
   USING (auth.uid() = user_id);
--- NOTE: admin rows are managed from the Supabase Dashboard SQL editor,
--- intentionally not writable from client code.
 
 -- ---------------------------------------------------------------------
--- 2. festival_days — 7-day festival, optional theme (NOT forced)
+-- 5. festival_days — 7-day festival, optional theme (NOT forced)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.festival_days (
   id BIGSERIAL PRIMARY KEY,
@@ -88,24 +158,41 @@ INSERT INTO public.festival_days (day_number, date, title, description, theme, a
 ON CONFLICT (day_number) DO NOTHING;
 
 -- ---------------------------------------------------------------------
--- 3. schedule_events — add active/location/aarti link + timestamps
+-- 6. schedule_events — additive columns for existing production table
 -- ---------------------------------------------------------------------
 ALTER TABLE public.schedule_events
   ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE;
 ALTER TABLE public.schedule_events
   ADD COLUMN IF NOT EXISTS location TEXT;
 ALTER TABLE public.schedule_events
-  ADD COLUMN IF NOT EXISTS aarti_id BIGINT REFERENCES public.aartis(id) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS aarti_id BIGINT;
 ALTER TABLE public.schedule_events
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+-- Foreign key added separately so re-runs stay idempotent even when the
+-- column already existed from a previous partial run.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'schedule_events_aarti_id_fkey'
+  ) THEN
+    ALTER TABLE public.schedule_events
+      ADD CONSTRAINT schedule_events_aarti_id_fkey
+      FOREIGN KEY (aarti_id) REFERENCES public.aartis(id) ON DELETE SET NULL;
+  END IF;
+END
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_schedule_events_day
   ON public.schedule_events(day, sort_order);
 CREATE INDEX IF NOT EXISTS idx_schedule_events_aarti
   ON public.schedule_events(aarti_id);
 
+ALTER TABLE public.schedule_events ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "Public read schedule_events" ON public.schedule_events;
 DROP POLICY IF EXISTS "Admin write schedule_events" ON public.schedule_events;
+DROP POLICY IF EXISTS "Public read active schedule_events" ON public.schedule_events;
 CREATE POLICY "Public read active schedule_events"
   ON public.schedule_events FOR SELECT TO anon, authenticated
   USING (active = true);
@@ -115,13 +202,16 @@ CREATE POLICY "Admins manage schedule_events"
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- ---------------------------------------------------------------------
--- 4. aartis — tighten policies (public: published only / admin: admins)
+-- 7. aartis — tighten policies (public: published only / admin: admins)
 --    NOTE: no data changes here; existing aartis are preserved.
 -- ---------------------------------------------------------------------
+ALTER TABLE public.aartis ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "Public read published aartis" ON public.aartis;
 DROP POLICY IF EXISTS "Admin full access on aartis" ON public.aartis;
 DROP POLICY IF EXISTS "Public read aartis" ON public.aartis;
 DROP POLICY IF EXISTS "Admin write aartis" ON public.aartis;
+DROP POLICY IF EXISTS "Admins manage aartis" ON public.aartis;
 CREATE POLICY "Public read published aartis"
   ON public.aartis FOR SELECT TO anon, authenticated
   USING (published = true);
@@ -133,7 +223,7 @@ CREATE INDEX IF NOT EXISTS idx_aartis_slug ON public.aartis(slug);
 CREATE INDEX IF NOT EXISTS idx_aartis_published ON public.aartis(published, sort_order);
 
 -- ---------------------------------------------------------------------
--- 5. announcements — add published/expires_at/updated_at
+-- 8. announcements — additive columns for existing production table
 -- ---------------------------------------------------------------------
 ALTER TABLE public.announcements
   ADD COLUMN IF NOT EXISTS published BOOLEAN NOT NULL DEFAULT TRUE;
@@ -142,8 +232,11 @@ ALTER TABLE public.announcements
 ALTER TABLE public.announcements
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "Public read announcements" ON public.announcements;
 DROP POLICY IF EXISTS "Admin write announcements" ON public.announcements;
+DROP POLICY IF EXISTS "Public read live announcements" ON public.announcements;
 CREATE POLICY "Public read live announcements"
   ON public.announcements FOR SELECT TO anon, authenticated
   USING (active = true AND published = true
@@ -154,7 +247,7 @@ CREATE POLICY "Admins manage announcements"
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- ---------------------------------------------------------------------
--- 6. gallery_images
+-- 9. gallery_images
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.gallery_images (
   id BIGSERIAL PRIMARY KEY,
@@ -201,7 +294,7 @@ CREATE POLICY "Admins write gallery bucket"
   WITH CHECK (bucket_id = 'gallery' AND public.is_admin());
 
 -- ---------------------------------------------------------------------
--- 7. contacts (Call + WhatsApp only — no email fields)
+-- 10. contacts (Call + WhatsApp only — no email fields)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.contacts (
   id BIGSERIAL PRIMARY KEY,
@@ -233,7 +326,7 @@ INSERT INTO public.contacts (name, phone, display_order, active) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- ---------------------------------------------------------------------
--- 8. visarjan_info (single row, id = 1)
+-- 11. visarjan_info (single row, id = 1)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.visarjan_info (
   id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -277,7 +370,7 @@ VALUES (1, '2026-09-20', '15:00', '11:00',
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
--- 9. site_settings (mandal info key/value — no email keys)
+-- 12. site_settings (mandal info key/value — no email keys)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.site_settings (
   key TEXT PRIMARY KEY,
@@ -310,7 +403,7 @@ INSERT INTO public.site_settings (key, value) VALUES
 ON CONFLICT (key) DO NOTHING;
 
 -- ---------------------------------------------------------------------
--- 10. updated_at auto-touch triggers
+-- 13. updated_at auto-touch triggers
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.touch_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
