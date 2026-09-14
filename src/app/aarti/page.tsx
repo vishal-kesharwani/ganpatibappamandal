@@ -1,12 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { AARTIS, AARTI_CATEGORIES, AARTI_TYPES, AARTI_LANGUAGES } from "@/data/aartis";
 
-const publishedAartis = AARTIS.filter((a) => a.published);
+const AARTI_CATEGORIES = [
+  { id: "ganpati", label: "गणपती", labelEn: "Ganpati" },
+  { id: "shiva", label: "शिव", labelEn: "Shiva" },
+  { id: "devi", label: "देवी", labelEn: "Devi" },
+  { id: "vitthal", label: "विठ्ठल", labelEn: "Vitthal" },
+  { id: "dattatreya", label: "दत्तात्रेय", labelEn: "Dattatreya" },
+  { id: "hanuman", label: "हनुमान / मारुती", labelEn: "Hanuman / Maruti" },
+  { id: "krishna", label: "कृष्ण", labelEn: "Krishna" },
+  { id: "ram", label: "राम", labelEn: "Rama" },
+  { id: "vishnu", label: "विष्णु", labelEn: "Vishnu" },
+  { id: "sai", label: "साईं", labelEn: "Sai Baba" },
+  { id: "other", label: "इतर", labelEn: "Other" },
+];
+
+const AARTI_TYPES: { id: string; label: string; labelEn: string }[] = [
+  { id: "aarti", label: "आरती", labelEn: "Aarti" },
+  { id: "stotra", label: "स्तोत्र", labelEn: "Stotra" },
+  { id: "prayer", label: "प्रार्थना", labelEn: "Prayer" },
+  { id: "bhupali", label: "भुपाली", labelEn: "Bhupali" },
+  { id: "dhuparti", label: "धुपारती", labelEn: "Dhuparti" },
+  { id: "shej", label: "शेज", labelEn: "Shej" },
+  { id: "nirop", label: "निरोप", labelEn: "Nirop" },
+  { id: "chalisa", label: "चालीसा", labelEn: "Chalisa" },
+  { id: "mantra", label: "मंत्र", labelEn: "Mantra" },
+];
+
+const AARTI_LANGUAGES: { id: string; label: string; labelEn: string }[] = [
+  { id: "marathi", label: "मराठी", labelEn: "Marathi" },
+  { id: "hindi", label: "हिंदी", labelEn: "Hindi" },
+  { id: "sanskrit", label: "संस्कृत", labelEn: "Sanskrit" },
+  { id: "other", label: "इतर", labelEn: "Other" },
+];
 
 const LANGUAGE_FILTERS = ["all", "marathi", "hindi", "sanskrit"] as const;
 const CATEGORY_FILTERS = [
@@ -20,6 +50,26 @@ export default function AartiPage() {
   const [activeLanguage, setActiveLanguage] = useState<string>("all");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeType, setActiveType] = useState<string>("all");
+  const [aartis, setAartis] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (activeLanguage !== "all") params.set("language", activeLanguage);
+    if (activeCategory !== "all") params.set("category", activeCategory);
+    if (activeType !== "all") params.set("type", activeType);
+
+    fetch(`/api/aartis?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setAartis(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [search, activeLanguage, activeCategory, activeType]);
+
+  const publishedAartis = aartis.filter((a) => a.published);
 
   const filtered = publishedAartis.filter((a) => {
     const matchesSearch =
@@ -158,18 +208,22 @@ export default function AartiPage() {
 
           {/* Results Count */}
           <p className="text-xs mb-4" style={{ color: "#78716C" }}>
-            Showing {filtered.length} of {publishedAartis.length} aartis
+            {loading ? "Loading..." : `Showing ${filtered.length} of ${publishedAartis.length} aartis`}
           </p>
 
           {/* Aarti List */}
           <div className="space-y-3">
-            {filtered.length === 0 && (
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-sm" style={{ color: "#44403C" }}>Loading aartis...</p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-sm" style={{ color: "#44403C" }}>
                   No aartis found matching your filters
                 </p>
               </div>
-            )}
+            ) : null}
 
             {filtered.map((aarti) => (
               <Link

@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { AARTIS } from "@/data/aartis";
 import type { Aarti } from "@/data/aartis";
 import { shareText, shareToWhatsApp } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
@@ -45,13 +44,30 @@ const TYPE_BADGES: Record<string, string> = {
 export default function AartiDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const aarti = AARTIS.find((a) => a.slug === slug);
-
+  const [aarti, setAarti] = useState<Aarti | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [fontSize, setFontSize] = useState(22);
   const [isReading, setIsReading] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [language, setLanguage] = useState<Language>("marathi");
   const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/aartis/${slug}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Not found");
+        return res.json();
+      })
+      .then((data) => {
+        setAarti(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setNotFound(true);
+        setLoading(false);
+      });
+  }, [slug]);
 
   const hasTransliteration = Boolean(aarti?.transliteration);
 
@@ -80,6 +96,64 @@ export default function AartiDetailPage() {
       }
     };
   }, [isReading]);
+
+  if (loading || notFound) {
+    return (
+      <div className="min-h-screen bg-[#F5EDE0] flex items-center justify-center px-4">
+        <div className="text-center">
+          {loading ? (
+            <>
+              <p className="text-[#44403C] text-lg font-gotu">Loading...</p>
+              <p className="text-[#78716C] text-sm mt-1">Please wait</p>
+              <Link
+                href="/aarti"
+                className="text-[#7C2D12] text-sm mt-6 inline-flex items-center gap-1 hover:underline font-medium"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 19.5L8.25 12l7.5-7.5"
+                  />
+                </svg>
+                Library मध्ये परत जा
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="text-[#44403C] text-lg font-gotu">आरती सापडली नाही</p>
+              <p className="text-[#78716C] text-sm mt-1">Aarti not found</p>
+              <Link
+                href="/aarti"
+                className="text-[#7C2D12] text-sm mt-6 inline-flex items-center gap-1 hover:underline font-medium"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 19.5L8.25 12l7.5-7.5"
+                  />
+                </svg>
+                Library मध्ये परत जा
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (!aarti) {
     return (

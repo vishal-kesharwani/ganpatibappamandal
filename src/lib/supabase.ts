@@ -29,25 +29,24 @@ export type Database = {
           id: number;
           slug: string;
           title: string;
-          title_marathi: string;
-          title_hindi: string;
-          title_hinglish: string;
+          title_devanagari: string;
+          deity: string;
           category: string;
-          category_marathi: string;
-          category_hindi: string;
-          category_hinglish: string;
+          language: string;
+          type: string;
           lyrics: string;
-          lyrics_hindi: string;
-          lyrics_hinglish: string;
+          transliteration: string | null;
           description: string | null;
-          description_hindi: string | null;
-          description_hinglish: string | null;
-          featured: boolean;
+          source: string;
+          source_url: string | null;
+          content_status: string;
+          verified: boolean;
+          published: boolean;
           sort_order: number;
           created_at: string;
         };
         Insert: Omit<{ id?: number; created_at?: string }, "id" | "created_at">;
-        Update: Partial<Omit<{ id: number; slug: string; title: string; title_marathi: string; lyrics: string; category: string; sort_order: number }, "id">>;
+        Update: Partial<Omit<{ id: number; slug: string; title: string; title_devanagari: string; deity: string; category: string; language: string; type: string; lyrics: string; transliteration: string | null; description: string | null; source: string; source_url: string | null; content_status: string; verified: boolean; published: boolean; sort_order: number }, "id">>;
       };
       announcements: {
         Row: {
