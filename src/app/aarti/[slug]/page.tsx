@@ -4,14 +4,42 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AARTIS } from "@/data/aartis";
+import type { Aarti } from "@/data/aartis";
 import { shareText, shareToWhatsApp } from "@/lib/utils";
+import BottomNav from "@/components/BottomNav";
 
 type Language = "marathi" | "hindi" | "hinglish";
 
 const LANG_LABELS: Record<Language, string> = {
-  marathi: "मराठी",
-  hindi: "हिंदी",
+  marathi: "Marathi",
+  hindi: "Hindi",
   hinglish: "Hinglish",
+};
+
+const CATEGORY_BADGES: Record<string, string> = {
+  ganpati: "Ganpati",
+  shiva: "Shiva",
+  devi: "Devi",
+  vitthal: "Vitthal",
+  dattatreya: "Dattatreya",
+  hanuman: "Hanuman",
+  krishna: "Krishna",
+  ram: "Ram",
+  vishnu: "Vishnu",
+  sai: "Sai Baba",
+  other: "Other",
+};
+
+const TYPE_BADGES: Record<string, string> = {
+  aarti: "आरती",
+  stotra: "स्तोत्र",
+  prayer: "प्रार्थना",
+  bhupali: "भुपाली",
+  dhuparti: "धुपारती",
+  shej: "शेज",
+  nirop: "निरोप",
+  chalisa: "चालीसा",
+  mantra: "मंत्र",
 };
 
 export default function AartiDetailPage() {
@@ -23,6 +51,9 @@ export default function AartiDetailPage() {
   const [isReading, setIsReading] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [language, setLanguage] = useState<Language>("marathi");
+  const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null);
+
+  const hasTransliteration = Boolean(aarti?.transliteration);
 
   const handleScroll = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -31,14 +62,23 @@ export default function AartiDetailPage() {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
   useEffect(() => {
     if (isReading && "wakeLock" in navigator) {
-      navigator.wakeLock.request("screen").catch(() => {});
+      navigator.wakeLock
+        .request("screen")
+        .then((sentinel) => setWakeLock(sentinel))
+        .catch(() => {});
     }
+    return () => {
+      if (wakeLock) {
+        wakeLock.release();
+        setWakeLock(null);
+      }
+    };
   }, [isReading]);
 
   if (!aarti) {
@@ -73,45 +113,19 @@ export default function AartiDetailPage() {
 
   const getTitle = () => {
     switch (language) {
-      case "hindi":
-        return aarti.titleHindi;
       case "hinglish":
-        return aarti.titleHinglish;
+        return aarti.title;
       default:
-        return aarti.titleMarathi;
-    }
-  };
-
-  const getCategory = () => {
-    switch (language) {
-      case "hindi":
-        return aarti.categoryHindi;
-      case "hinglish":
-        return aarti.categoryHinglish;
-      default:
-        return aarti.categoryMarathi;
+        return aarti.titleDevanagari;
     }
   };
 
   const getLyrics = () => {
     switch (language) {
-      case "hindi":
-        return aarti.lyricsHindi;
       case "hinglish":
-        return aarti.lyricsHinglish;
+        return aarti.transliteration || aarti.lyrics;
       default:
         return aarti.lyrics;
-    }
-  };
-
-  const getDescription = () => {
-    switch (language) {
-      case "hindi":
-        return aarti.descriptionHindi || aarti.description;
-      case "hinglish":
-        return aarti.descriptionHinglish || aarti.description;
-      default:
-        return aarti.description;
     }
   };
 
@@ -153,9 +167,7 @@ export default function AartiDetailPage() {
             </svg>
             Back
           </Link>
-          <h1
-            className={`text-sm font-bold font-gotu text-[#1C1917] truncate max-w-[200px]`}
-          >
+          <h1 className="text-sm font-bold font-gotu text-[#1C1917] truncate max-w-[200px]">
             {getTitle()}
           </h1>
           <div className="w-16" />
@@ -165,21 +177,27 @@ export default function AartiDetailPage() {
       {/* Controls Bar */}
       <div className="sticky top-[49px] z-30 bg-[#FAF7F2] border-b border-[#E7E5E4]">
         <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
-          {/* Language Selector */}
+          {/* Language Toggle */}
           <div className="flex items-center justify-center gap-2">
-            {(Object.keys(LANG_LABELS) as Language[]).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setLanguage(lang)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  language === lang
-                    ? "bg-[#7C2D12] text-white shadow-sm"
-                    : "bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E] hover:border-[#B45309] hover:text-[#7C2D12]"
-                }`}
-              >
-                {LANG_LABELS[lang]}
-              </button>
-            ))}
+            {(Object.keys(LANG_LABELS) as Language[]).map((lang) => {
+              const disabled = lang === "hinglish" && !hasTransliteration;
+              return (
+                <button
+                  key={lang}
+                  onClick={() => !disabled && setLanguage(lang)}
+                  disabled={disabled}
+                  className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    disabled
+                      ? "bg-[#F5F0E8] border border-[#E7E5E4] text-[#D6D3D1] cursor-not-allowed opacity-50"
+                      : language === lang
+                        ? "bg-[#7C2D12] text-white shadow-sm"
+                        : "bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E] hover:border-[#B45309] hover:text-[#7C2D12]"
+                  }`}
+                >
+                  {LANG_LABELS[lang]}
+                </button>
+              );
+            })}
           </div>
 
           {/* Font Size + Read Mode */}
@@ -220,11 +238,11 @@ export default function AartiDetailPage() {
       </div>
 
       {/* Aarti Content */}
-      <div className="max-w-lg mx-auto px-6 py-10">
+      <div className="max-w-lg mx-auto px-6 py-10 pb-28">
         {/* Decorative Divider */}
         <div className="flex items-center gap-3 mb-8">
           <div className="flex-1 h-px bg-[#E7E5E4]" />
-          <span className="text-[#A8A29E] text-xs">&#10022;</span>
+          <span className="text-[#A8A29E] text-xs">✦</span>
           <div className="flex-1 h-px bg-[#E7E5E4]" />
         </div>
 
@@ -238,28 +256,66 @@ export default function AartiDetailPage() {
           </h1>
         </div>
 
-        {/* Category */}
-        <p
-          className={`text-center text-xs ${fontClass} text-[#A8A29E] mb-8 tracking-wide uppercase`}
-        >
-          {getCategory()}
-        </p>
+        {/* Metadata Badges */}
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#7C2D12] text-white">
+            {aarti.deity}
+          </span>
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]">
+            {aarti.language}
+          </span>
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F5F0E8] border border-[#E7E5E4] text-[#57534E]">
+            {TYPE_BADGES[aarti.type] || aarti.type}
+          </span>
+        </div>
+
+        {/* Verified Badge */}
+        {aarti.verified && (
+          <div className="flex items-center justify-center gap-1.5 mb-4">
+            <svg
+              className="w-4 h-4 text-[#16A34A]"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="text-xs text-[#16A34A] font-medium">Verified Source</span>
+          </div>
+        )}
+
+        {/* Source Info */}
+        <div className="text-center mb-8">
+          {aarti.sourceUrl ? (
+            <a
+              href={aarti.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#A8A29E] hover:text-[#7C2D12] transition-colors underline underline-offset-2"
+            >
+              {aarti.source}
+            </a>
+          ) : (
+            <span className="text-xs text-[#A8A29E]">{aarti.source}</span>
+          )}
+        </div>
 
         {/* Description */}
-        {getDescription() && (
-          <div className="mb-10 p-4 bg-white border border-[#E7E5E4] rounded-lg">
-            <p
-              className={`text-sm ${fontClass} leading-relaxed text-[#57534E]`}
-            >
-              {getDescription()}
+        {aarti.description && (
+          <div className="mb-8 p-4 bg-white border border-[#E7E5E4] rounded-lg">
+            <p className={`text-sm ${fontClass} leading-relaxed text-[#57534E]`}>
+              {aarti.description}
             </p>
           </div>
         )}
 
-        {/* Divider */}
+        {/* Decorative Divider */}
         <div className="flex items-center gap-3 my-10">
           <div className="flex-1 h-px bg-[#E7E5E4]" />
-          <span className="text-[#A8A29E] text-xs">&#10022;</span>
+          <span className="text-[#A8A29E] text-xs">✦</span>
           <div className="flex-1 h-px bg-[#E7E5E4]" />
         </div>
 
@@ -277,14 +333,14 @@ export default function AartiDetailPage() {
         {/* Closing Divider */}
         <div className="flex items-center gap-3 my-12">
           <div className="flex-1 h-px bg-[#E7E5E4]" />
-          <span className="text-[#A8A29E] text-xs">&#10022;</span>
+          <span className="text-[#A8A29E] text-xs">✦</span>
           <div className="flex-1 h-px bg-[#E7E5E4]" />
         </div>
 
         {/* Closing Mantra */}
         <div className="text-center mb-8">
           <p className="text-xl font-bold font-gotu text-[#B45309]">
-            &#x1F64F; गणपती बाप्पा मोरया! &#x1F64F;
+            🙏 गणपती बाप्पा मोरया! 🙏
           </p>
         </div>
 
@@ -327,7 +383,7 @@ export default function AartiDetailPage() {
 
       {/* Bottom CTA */}
       {!isReading && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-[#FAF7F2] via-[#FAF7F2] to-transparent pointer-events-none">
+        <div className="fixed bottom-[60px] left-0 right-0 z-40 p-4 bg-gradient-to-t from-[#FAF7F2] via-[#FAF7F2] to-transparent pointer-events-none">
           <div className="max-w-lg mx-auto pointer-events-auto">
             <button
               onClick={() => {
@@ -341,6 +397,8 @@ export default function AartiDetailPage() {
           </div>
         </div>
       )}
+
+      <BottomNav />
     </div>
   );
 }

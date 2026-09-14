@@ -303,10 +303,10 @@ export default function AdminPage() {
                   className="font-bold text-sm"
                   style={{ color: MAROON }}
                 >
-                  {a.titleMarathi}
+                  {a.titleDevanagari || a.title}
                 </p>
                 <p className="text-[10px]" style={{ color: STONE_400 }}>
-                  {a.categoryMarathi}
+                  {a.category}
                 </p>
               </div>
             ))}
@@ -376,7 +376,7 @@ export default function AdminPage() {
                     className="font-bold text-sm"
                     style={{ color: MAROON }}
                   >
-                    {a.titleMarathi}
+                  {a.title}
                   </p>
                   <p className="text-[10px] mt-1" style={{ color: STONE_400 }}>
                     {a.descriptionMarathi}
