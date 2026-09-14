@@ -36,6 +36,17 @@ export default function HomePage() {
               />
             </div>
 
+            <div className="relative w-full max-w-[320px] mx-auto overflow-hidden rounded-lg border border-[#E7E5E4] shadow-sm">
+              <Image
+                src="/ganpati-with-mandal-name.jpeg"
+                alt="Ganpati Bappa murti at OM SAI MITRA MANDAL, Kaneri"
+                width={640}
+                height={853}
+                className="w-full h-auto"
+                priority
+              />
+            </div>
+
             <div className="space-y-2">
               <h1 className="text-[2rem] leading-tight font-gotu text-[#1C1917]">
                 गणपती बाप्पा मोरया!
