@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import type { Aarti } from "@/data/aartis";
+import type { AartiRow } from "@/lib/supabase";
 import { shareText, shareToWhatsApp } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 
@@ -44,7 +44,7 @@ const TYPE_BADGES: Record<string, string> = {
 export default function AartiDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [aarti, setAarti] = useState<Aarti | null>(null);
+  const [aartiData, setAartiData] = useState<AartiRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [fontSize, setFontSize] = useState(22);
@@ -60,7 +60,7 @@ export default function AartiDetailPage() {
         return res.json();
       })
       .then((data) => {
-        setAarti(data);
+        setAartiData(data);
         setLoading(false);
       })
       .catch(() => {
@@ -69,7 +69,7 @@ export default function AartiDetailPage() {
       });
   }, [slug]);
 
-  const hasTransliteration = Boolean(aarti?.transliteration);
+  const hasTransliteration = Boolean(aartiData?.transliteration);
 
   const handleScroll = useCallback(() => {
     const scrollTop = window.scrollY;
@@ -155,7 +155,7 @@ export default function AartiDetailPage() {
     );
   }
 
-  if (!aarti) {
+  if (!aartiData) {
     return (
       <div className="min-h-screen bg-[#F5EDE0] flex items-center justify-center px-4">
         <div className="text-center">
@@ -188,18 +188,18 @@ export default function AartiDetailPage() {
   const getTitle = () => {
     switch (language) {
       case "hinglish":
-        return aarti.title;
+        return aartiData.title;
       default:
-        return aarti.titleDevanagari;
+        return aartiData.titleDevanagari;
     }
   };
 
   const getLyrics = () => {
     switch (language) {
       case "hinglish":
-        return aarti.transliteration || aarti.lyrics;
+        return aartiData.transliteration || aartiData.lyrics;
       default:
-        return aarti.lyrics;
+        return aartiData.lyrics;
     }
   };
 
@@ -336,18 +336,18 @@ export default function AartiDetailPage() {
         {/* Metadata Badges */}
         <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#7C2D12] text-white shadow-sm">
-            {aarti.deity}
+            {aartiData.deity}
           </span>
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#1C1917] text-[#FAF7F2]">
-            {aarti.language}
+            {aartiData.language}
           </span>
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#1C1917] text-[#FAF7F2]">
-            {TYPE_BADGES[aarti.type] || aarti.type}
+            {TYPE_BADGES[aartiData.type] || aartiData.type}
           </span>
         </div>
 
         {/* Verified Badge - Green */}
-        {aarti.verified && (
+        {aartiData?.verified && (
           <div className="flex items-center justify-center gap-1.5 mb-4">
             <svg
               className="w-4 h-4 text-[#065F46]"
@@ -366,25 +366,25 @@ export default function AartiDetailPage() {
 
         {/* Source Info */}
         <div className="text-center mb-8">
-          {aarti.sourceUrl ? (
+          {aartiData?.sourceUrl ? (
             <a
-              href={aarti.sourceUrl}
+              href={aartiData?.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-[#7C2D12] font-medium hover:underline hover:text-[#6B2113] transition-colors underline-offset-2"
             >
-              {aarti.source}
+              {aartiData?.source}
             </a>
           ) : (
-            <span className="text-xs text-[#78716C] font-medium">{aarti.source}</span>
+            <span className="text-xs text-[#78716C] font-medium">{aartiData?.source}</span>
           )}
         </div>
 
         {/* Description - Warm white card */}
-        {aarti.description && (
+        {aartiData?.description && (
           <div className="mb-8 p-5 bg-[#FFFBF5] border border-[#D6D3D1] rounded-lg shadow-sm">
             <p className={`text-sm ${fontClass} leading-relaxed text-[#44403C]`}>
-              {aarti.description}
+              {aartiData?.description}
             </p>
           </div>
         )}

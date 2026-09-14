@@ -3,8 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 export type Database = {
   public: {
     Tables: {
@@ -65,3 +63,29 @@ export type Database = {
     };
   };
 };
+
+export type AartiRow = {
+  id: number;
+  slug: string;
+  title: string;
+  titleDevanagari: string;
+  deity: string;
+  category: string;
+  language: string;
+  type: string;
+  lyrics: string;
+  transliteration: string | null;
+  description: string | null;
+  source: string;
+  sourceUrl: string | null;
+  contentStatus: string;
+  verified: boolean;
+  published: boolean;
+  sortOrder: number;
+  createdAt: string;
+};
+
+export type AartiInsert = Database["public"]["Tables"]["aartis"]["Insert"];
+export type AartiUpdate = Database["public"]["Tables"]["aartis"]["Update"];
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
