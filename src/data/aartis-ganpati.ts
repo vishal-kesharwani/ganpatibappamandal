@@ -10,42 +10,52 @@ export const GANPATI_AARTIS: Aarti[] = [
     category: "ganpati",
     language: "marathi",
     type: "aarti",
-    lyrics: `सुखकर्ता दुःखहर्ता वाहिले विठ्ठल स्वामी
-पाहणी अंतर देवा श्री गणराज विठ्ठल
+    lyrics: `सुखकर्ता दुःखहर्ता वार्ता विघ्नाची।
+नुरवी पुरवी प्रेम कृपा जयाची।
+सर्वांगी सुन्दर उटि शेंदुराची।
+कण्ठी झळके माळ मुक्ताफळांची॥
 
-विठ्ठल विठ्ठल विठ्ठल पाहणी अंतर देवा
-श्री गणराज विठ्ठल
+जय देव जय देव जय मंगलमूर्ति।
+दर्शनमात्रे मनकामना पुरती॥
 
-देवा तुझ्या दर्शनासी येती दूर दुःख भवानी
-शरणात आम्ही सदा तुझ्या करूनी वाहिले विठ्ठल
+रत्नखचित फरा तुज गौरीकुमरा।
+चन्दनाची उटि कुंकुमकेशरा।
+हिरे जडित मुकुट शोभतो बरा।
+रुणझुणती नूपुरे चरणी घागरिया॥
 
-निर्वाण देवा निर्वाण तुझ्या दर्शनांचे वाहिले
-विठ्ठल विठ्ठल विठ्ठल पाहणी अंतर देवा
-श्री गणराज विठ्ठल
+जय देव जय देव जय मंगलमूर्ति।
+दर्शनमात्रे मनकामना पुरती॥
 
-गणपती बाप्पा मोरया मंगल मूर्ती मोरया
-शंकर सुवामी करूनी वाहिले विठ्ठल
+लम्बोदर पीताम्बर फणिवर बन्धना।
+सरळ सोण्ड वक्रतुण्ड त्रिनयना।
+दास रामाचा वाट पाहे सदना।
+संकटी पावावे निर्वाणी रक्षावे सुरवरवन्दना॥
 
-विठ्ठल विठ्ठल विठ्ठल पाहणी अंतर देवा
-श्री गणराज विठ्ठल`,
-    transliteration: `Sukhkarta Dukhharta Vahile Viththal Swami
-Pahani Antara Deva Shri Ganraj Viththal
+जय देव जय देव जय मंगलमूर्ति।
+दर्शनमात्रे मनकामना पुरती॥`,
+    transliteration: `Sukhkarta Dukhharta Varta Vighnachi
+Nuravi Puravi Prem Krup Jayachi
+Sarvangee Sundar Uti Shendurachi
+Kathi Zhalke Mal Muktaphalaanchi
 
-Viththal Viththal Viththal Pahani Antara Deva
-Shri Ganraj Viththal
+Jay Dev Jay Dev Jay Mangalmurti
+Darshanmatre Manakamana Purati
 
-Devata Tujhya Darshanasi Yeti Dukhh Bhavani
-Sharanaat Aamhi Sada Tujhya Karuni Vahile Viththal
+Rathnakachit Phara Tuj Gaurikumara
+Chandanachi Uti Kunumakeshara
+Hire Jadit Mukut Shobto Bara
+Runjhunati Nupure Charani Ghagariya
 
-Nirvana Deva Nirvana Tujhya Darshanaanche Vahile
-Viththal Viththal Viththal Pahani Antara Deva
-Shri Ganraj Viththal
+Jay Dev Jay Dev Jay Mangalmurti
+Darshanmatre Manakamana Purati
 
-Ganpati Bappa Morya Mangal Murti Morya
-Shankar Suwami Karuni Vahile Viththal
+Lambodar Peetambar Phanivar Bandhana
+Saral Soda Vakratundaya Trinayana
+Dasa Ramacha Wat Pahye Sadana
+Sankati Pavave Nirvani Rakshave Suravarvandana
 
-Viththal Viththal Viththal Pahani Antara Deva
-Shri Ganraj Viththal`,
+Jay Dev Jay Dev Jay Mangalmurti
+Darshanmatre Manakamana Purati`,
     description:
       "One of the most popular Ganpati aartis composed by Moredada, a disciple of Swami Samarth. Widely sung during Ganesh Chaturthi celebrations across Maharashtra.",
     source: "Traditional - Moredada (disciple of Swami Samarth)",
@@ -589,6 +599,48 @@ Om Gam Ganapataye Namah ॥`,
     description:
       "The sacred Ganpati mantra 'Om Gam Ganapataye Namah' is one of the most powerful mantras for invoking Lord Ganpati. 'Gam' is the seed (bija) mantra of Ganpati. Reciting this mantra removes obstacles and brings success in all endeavors.",
     source: "Traditional Hindu Mantra",
+    contentStatus: "verified",
+    verified: true,
+    published: true,
+  },
+  {
+    id: "11",
+    slug: "jay-ganesh-jay-ganesh",
+    title: "जय गणेश जय गणेश देवा",
+    titleDevanagari: "जय गणेश जय गणेश जय गणेश देवा",
+    deity: "Ganpati",
+    category: "ganpati",
+    language: "marathi",
+    type: "aarti",
+    lyrics: `जय गणेश जय गणेश जय गणेश देवा।
+माता जाकी पार्वती पिता महादेवा॥
+
+एक दंत दयावंत चार भुजा धारी।
+माथे सिंदूर सोहे मूसे की सवारी॥
+
+जय गणेश जय गणेश जय गणेश देवा।
+माता जाकी पार्वती पिता महादेवा॥
+
+पान चढ़े फल चढ़े और चढ़े मेवा।
+लड्डुअन का भोग लगे संत करें सेवा॥
+
+जय गणेश जय गणेश जय गणेश देवा।
+माता जाकी पार्वती पिता महादेवा॥
+
+अंधन को आँख देत कोड़ीन को काया।
+बांझन को पुत्र देत निर्धन को माया॥
+
+जय गणेश जय गणेश जय गणेश देवा।
+माता जाकी पार्वती पिता महादेवा॥
+
+सूर श्याम शरण आए सफल कीजे सेवा।
+माता जाकी पार्वती पिता महादेवा॥
+
+जय गणेश जय गणेश जय गणेश देवा।
+माता जाकी पार्वती पिता महादेवा॥`,
+    transliteration: "Jay Ganesh Jay Ganesh Jay Ganesh Deva...",
+    description: "जय गणेश जय गणेश देवा ही प्रसिद्ध गणपती आरती आहे.",
+    source: "Traditional Marathi Aarti",
     contentStatus: "verified",
     verified: true,
     published: true,
