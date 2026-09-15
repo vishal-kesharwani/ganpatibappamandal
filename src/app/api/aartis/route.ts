@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from("aartis")
-    .select("*")
+    .select("id,slug,title,title_devanagari,deity,category,language,type,verified,published,sort_order")
     .eq("published", true)
     .order("sort_order", { ascending: true });
 

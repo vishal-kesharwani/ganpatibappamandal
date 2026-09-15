@@ -60,13 +60,21 @@ export default function AartiPage() {
     if (activeCategory !== "all") params.set("category", activeCategory);
     if (activeType !== "all") params.set("type", activeType);
 
-    fetch(`/api/aartis?${params.toString()}`)
+    const url = `/api/aartis?${params.toString()}`;
+    const ctrl = new AbortController();
+    setLoading(true);
+
+    fetch(url, { signal: ctrl.signal })
       .then((res) => res.json())
       .then((data) => {
         setAartis(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((e) => {
+        if (e.name !== "AbortError") setLoading(false);
+      });
+
+    return () => ctrl.abort();
   }, [search, activeLanguage, activeCategory, activeType]);
 
   const publishedAartis = aartis.filter((a) => a.published);
@@ -208,9 +216,18 @@ export default function AartiPage() {
           {/* Aarti List */}
           <div className="space-y-3">
             {loading ? (
-              <div className="text-center py-12">
-                <p className="text-sm" style={{ color: "#44403C" }}>Loading aartis...</p>
-              </div>
+              <>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="animate-pulse bg-[#FFFBF5] border border-[#D6D3D1] rounded-lg p-4">
+                    <div className="h-4 w-48 rounded bg-[#E7E5E4]" />
+                    <div className="mt-2 h-3 w-24 rounded bg-[#E7E5E4]" />
+                    <div className="mt-2 flex gap-1.5">
+                      <div className="h-4 w-16 rounded-full bg-[#E7E5E4]" />
+                      <div className="h-4 w-16 rounded-full bg-[#E7E5E4]" />
+                    </div>
+                  </div>
+                ))}
+              </>
             ) : filtered.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-sm" style={{ color: "#44403C" }}>
