@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Admin design primitives — restrained professional CMS aesthetic.
- * Ivory surfaces, deep maroon accents, compact controls.
+ * Admin design primitives — Apple HIG-inspired, premium CMS aesthetic.
+ * Clean surfaces, refined shadows, precise typography, fluid motion.
  */
 import {
   createContext,
@@ -16,14 +16,25 @@ import {
 } from "react";
 import { supabase, isMissingTableError } from "@/lib/supabase";
 
-export const A_IVORY = "#FAF7F2";
+// ── Design Tokens ──────────────────────────────────────────────
+export const A_IVORY = "#FAF8F5";
 export const A_MAROON = "#7C2D12";
-export const A_BORDER = "#E7E5E4";
-export const A_INK = "#1C1917";
+export const A_BORDER = "#E5E2DD";
+export const A_INK = "#1A1814";
 export const A_BODY = "#57534E";
 export const A_MUTED = "#A8A29E";
+export const A_SURFACE = "#FFFFFF";
+export const A_ELEVATED = "#FDFCFA";
+export const A_FOCUS = "rgba(124, 45, 18, 0.12)";
+export const A_RADIUS = 10;
+export const A_RADIUS_SM = 7;
+export const A_RADIUS_LG = 14;
+export const A_SHADOW_SM = "0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)";
+export const A_SHADOW_MD = "0 2px 8px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)";
+export const A_SHADOW_LG = "0 4px 12px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.06)";
+export const A_TRANSITION = "all 180ms cubic-bezier(0.32, 0.72, 0, 1)";
 
-// ---------- toast ----------
+// ── Toast ──────────────────────────────────────────────────────
 
 interface Toast {
   id: number;
@@ -56,28 +67,43 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={value}>
       {children}
-      <div className="fixed bottom-4 left-1/2 z-[100] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4">
+      <div className="fixed bottom-5 left-1/2 z-[100] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4">
         {toasts.map((t) => (
           <div
             key={t.id}
             role="status"
-            className="rounded-md border px-4 py-3 text-sm shadow-lg"
+            className="overflow-hidden rounded-xl px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-md"
             style={{
-              backgroundColor: "#FFFFFF",
-              borderColor: t.kind === "success" ? "#15803D" : "#DC2626",
+              backgroundColor: "rgba(255,255,255,0.92)",
+              border: `1px solid ${t.kind === "success" ? "#BBF7D0" : "#FECACA"}`,
               color: A_INK,
-              borderLeftWidth: 4,
+              boxShadow: A_SHADOW_LG,
+              animation: "toast-in 300ms cubic-bezier(0.32, 0.72, 0, 1)",
             }}
           >
-            {t.message}
+            <div className="flex items-center gap-2.5">
+              <span
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                style={{ backgroundColor: t.kind === "success" ? "#16A34A" : "#DC2626" }}
+              >
+                {t.kind === "success" ? "✓" : "!"}
+              </span>
+              <span>{t.message}</span>
+            </div>
           </div>
         ))}
       </div>
+      <style>{`
+        @keyframes toast-in {
+          from { opacity: 0; transform: translateY(12px) scale(0.96); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </ToastCtx.Provider>
   );
 }
 
-// ---------- confirm dialog ----------
+// ── Confirm Dialog ─────────────────────────────────────────────
 
 export function useConfirm(opts?: {
   title?: string;
@@ -85,7 +111,7 @@ export function useConfirm(opts?: {
   danger?: boolean;
 }) {
   const [pending, setPending] = useState<{ message: string; resolve: (v: boolean) => void } | null>(null);
-  const title = opts?.title ?? "Please confirm";
+  const title = opts?.title ?? "Confirm";
   const confirmLabel = opts?.confirmLabel ?? "Delete";
   const danger = opts?.danger ?? true;
 
@@ -98,44 +124,77 @@ export function useConfirm(opts?: {
   );
 
   const node = pending ? (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-xs rounded-lg bg-white p-5 shadow-xl" style={{ border: `1px solid ${A_BORDER}` }}>
-        <p className="text-sm font-semibold" style={{ color: A_INK }}>
-          {title}
-        </p>
-        <p className="mt-1 text-sm" style={{ color: A_BODY }}>
-          {pending.message}
-        </p>
-        <div className="mt-4 flex justify-end gap-2">
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center p-4"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.4)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
+        animation: "confirm-bg-in 200ms ease-out",
+      }}
+    >
+      <div
+        className="w-full max-w-sm overflow-hidden"
+        style={{
+          backgroundColor: A_SURFACE,
+          borderRadius: A_RADIUS_LG,
+          boxShadow: A_SHADOW_LG,
+          animation: "confirm-card-in 250ms cubic-bezier(0.32, 0.72, 0, 1)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-5 pt-5 pb-4">
+          <p className="text-[15px] font-semibold" style={{ color: A_INK }}>
+            {title}
+          </p>
+          <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: A_BODY }}>
+            {pending.message}
+          </p>
+        </div>
+        <div
+          className="flex border-t"
+          style={{ borderColor: A_BORDER }}
+        >
           <button
             onClick={() => {
               pending.resolve(false);
               setPending(null);
             }}
-            className="rounded-md px-4 py-2 text-xs font-semibold"
-            style={{ backgroundColor: A_IVORY, color: A_BODY, border: `1px solid ${A_BORDER}` }}
+            className="flex-1 py-3 text-[13px] font-medium transition-colors"
+            style={{ color: A_MAROON }}
           >
             Cancel
           </button>
+          <div style={{ width: 1, backgroundColor: A_BORDER }} />
           <button
             onClick={() => {
               pending.resolve(true);
               setPending(null);
             }}
-            className="rounded-md px-4 py-2 text-xs font-semibold text-white"
-            style={{ backgroundColor: danger ? "#DC2626" : A_MAROON }}
+            className="flex-1 py-3 text-[13px] font-semibold transition-colors"
+            style={{ color: danger ? "#DC2626" : A_MAROON }}
           >
             {confirmLabel}
           </button>
         </div>
       </div>
+      <style>{`
+        @keyframes confirm-bg-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes confirm-card-in {
+          from { opacity: 0; transform: scale(0.95) translateY(8px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
     </div>
   ) : null;
 
   return { confirm, node };
 }
 
-// ---------- generic supabase table hook ----------
+// ── Generic Supabase Table Hook ────────────────────────────────
 
 interface TableState<T> {
   rows: T[];
@@ -225,14 +284,14 @@ export function useTable<T>(
   return { rows, loading, error, missingTable, reload, create, update, remove };
 }
 
-// ---------- presentational ----------
+// ── Presentational Components ──────────────────────────────────
 
 export function Spinner({ label = "Loading…" }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-sm" style={{ color: A_MUTED }}>
+    <div className="flex items-center justify-center gap-2.5 py-10 text-[13px]" style={{ color: A_MUTED }}>
       <span
-        className="inline-block h-4 w-4 animate-spin rounded-full border-2"
-        style={{ borderColor: A_BORDER, borderTopColor: A_MAROON }}
+        className="inline-block h-4 w-4 animate-spin rounded-full"
+        style={{ border: `2px solid ${A_BORDER}`, borderTopColor: A_MAROON }}
       />
       {label}
     </div>
@@ -241,30 +300,36 @@ export function Spinner({ label = "Loading…" }: { label?: string }) {
 
 export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
   return (
-    <div className="rounded-lg bg-white px-4 py-10 text-center" style={{ border: `1px solid ${A_BORDER}` }}>
-      <p className="text-sm font-semibold" style={{ color: A_INK }}>
+    <div
+      className="rounded-2xl bg-white px-6 py-12 text-center"
+      style={{ border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}
+    >
+      <p className="text-[15px] font-semibold" style={{ color: A_INK }}>
         {title}
       </p>
       {hint && (
-        <p className="mx-auto mt-1 max-w-xs text-xs" style={{ color: A_MUTED }}>
+        <p className="mx-auto mt-1.5 max-w-[280px] text-[13px] leading-relaxed" style={{ color: A_MUTED }}>
           {hint}
         </p>
       )}
-      {action && <div className="mt-4">{action}</div>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }
 
 export function MissingTableNotice({ tables }: { tables: string }) {
   return (
-    <div className="rounded-lg bg-white p-5" style={{ border: `1px solid #D97706` }}>
-      <p className="text-sm font-semibold" style={{ color: A_INK }}>
+    <div
+      className="rounded-2xl p-5"
+      style={{ backgroundColor: "#FFFBEB", border: `1px solid #FDE68A` }}
+    >
+      <p className="text-[13px] font-semibold" style={{ color: "#92400E" }}>
         Database migration pending
       </p>
-      <p className="mt-1 text-xs leading-relaxed" style={{ color: A_BODY }}>
-        The {tables} table does not exist yet. Run <code>supabase-admin-platform.sql</code> in the
-        Supabase SQL Editor, then reload this page. Existing content is safe — the migration is
-        additive only.
+      <p className="mt-1 text-[12px] leading-relaxed" style={{ color: "#A16207" }}>
+        The <span className="font-mono font-semibold">{tables}</span> table does not exist yet. Run{" "}
+        <code className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-mono font-semibold">supabase-admin-platform.sql</code> in the
+        Supabase SQL Editor, then reload this page.
       </p>
     </div>
   );
@@ -281,13 +346,13 @@ export function Badge({
     green: { bg: "#DCFCE7", fg: "#15803D" },
     red: { bg: "#FEE2E2", fg: "#B91C1C" },
     amber: { bg: "#FEF3C7", fg: "#92400E" },
-    maroon: { bg: "#7C2D1215", fg: A_MAROON },
+    maroon: { bg: "#7C2D1212", fg: A_MAROON },
     gray: { bg: "#F5F5F4", fg: A_BODY },
   };
   const s = styles[tone];
   return (
     <span
-      className="inline-block shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+      className="inline-block shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide"
       style={{ backgroundColor: s.bg, color: s.fg }}
     >
       {children}
@@ -298,7 +363,10 @@ export function Badge({
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide" style={{ color: A_MUTED }}>
+      <span
+        className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider"
+        style={{ color: A_MUTED }}
+      >
         {label}
       </span>
       {children}
@@ -306,27 +374,57 @@ export function Field({ label, children }: { label: string; children: ReactNode 
   );
 }
 
-const inputStyle: React.CSSProperties = {
+// ── Form Inputs ────────────────────────────────────────────────
+
+const inputBase: React.CSSProperties = {
   width: "100%",
-  borderRadius: 6,
+  borderRadius: A_RADIUS,
   border: `1px solid ${A_BORDER}`,
-  backgroundColor: "#FFFFFF",
+  backgroundColor: A_SURFACE,
   color: A_INK,
-  padding: "8px 12px",
-  fontSize: 14,
+  padding: "9px 13px",
+  fontSize: 13,
+  lineHeight: "1.4",
+  transition: A_TRANSITION,
+  outline: "none",
 };
 
+const inputFocusClass = `
+  focus:border-[#7C2D12] focus:ring-[3px] focus:ring-[rgba(124,45,18,0.08)]
+  hover:border-[#D6D3D1]
+`;
+
 export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} style={{ ...inputStyle, ...props.style }} className={`admin-input ${props.className || ""}`} />;
+  return (
+    <input
+      {...props}
+      style={{ ...inputBase, ...props.style }}
+      className={`${inputFocusClass} ${props.className || ""}`}
+    />
+  );
 }
 
 export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} style={{ ...inputStyle, ...props.style }} className={`admin-input ${props.className || ""}`} />;
+  return (
+    <textarea
+      {...props}
+      style={{ ...inputBase, ...props.style, minHeight: 80, resize: "vertical" }}
+      className={`${inputFocusClass} ${props.className || ""}`}
+    />
+  );
 }
 
 export function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} style={{ ...inputStyle, ...props.style }} className={`admin-input ${props.className || ""}`} />;
+  return (
+    <select
+      {...props}
+      style={{ ...inputBase, ...props.style, cursor: "pointer" }}
+      className={`${inputFocusClass} ${props.className || ""}`}
+    />
+  );
 }
+
+// ── Toggle (iOS-style) ────────────────────────────────────────
 
 export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -335,26 +433,49 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex items-center gap-2 text-xs font-medium"
+      className="flex items-center gap-2.5 text-[13px] font-medium"
       style={{ color: A_BODY }}
     >
       <span
-        className="inline-flex h-5 w-9 items-center rounded-full px-0.5 transition-colors"
-        style={{ backgroundColor: checked ? A_MAROON : "#D6D3D1", justifyContent: checked ? "flex-end" : "flex-start" }}
+        className="relative inline-flex h-[26px] w-[46px] shrink-0 items-center rounded-full px-[3px] transition-all duration-200"
+        style={{
+          backgroundColor: checked ? "#16A34A" : "#D1D5DB",
+          justifyContent: checked ? "flex-end" : "flex-start",
+          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
+        }}
       >
-        <span className="h-4 w-4 rounded-full bg-white shadow" />
+        <span
+          className="inline-block h-[20px] w-[20px] rounded-full bg-white transition-all duration-200"
+          style={{
+            boxShadow: "0 1px 3px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.06)",
+          }}
+        />
       </span>
       {label}
     </button>
   );
 }
 
+// ── Buttons ────────────────────────────────────────────────────
+
 export function PrimaryButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...props}
-      className={`rounded-md px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 ${props.className || ""}`}
-      style={{ backgroundColor: A_MAROON, ...props.style }}
+      className={`
+        inline-flex items-center justify-center gap-1.5
+        rounded-lg px-4 py-2 text-[13px] font-semibold text-white
+        transition-all duration-150
+        hover:brightness-110 hover:shadow-md
+        active:scale-[0.98]
+        disabled:opacity-40 disabled:pointer-events-none
+        ${props.className || ""}
+      `}
+      style={{
+        backgroundColor: A_MAROON,
+        boxShadow: "0 1px 2px rgba(124,45,18,0.2), 0 1px 3px rgba(124,45,18,0.1)",
+        ...props.style,
+      }}
     />
   );
 }
@@ -363,8 +484,21 @@ export function GhostButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>
   return (
     <button
       {...props}
-      className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors hover:opacity-80 disabled:opacity-50 ${props.className || ""}`}
-      style={{ backgroundColor: A_IVORY, color: A_BODY, border: `1px solid ${A_BORDER}`, ...props.style }}
+      className={`
+        inline-flex items-center justify-center gap-1.5
+        rounded-lg px-3.5 py-2 text-[13px] font-medium
+        transition-all duration-150
+        hover:bg-stone-100 hover:border-stone-300
+        active:scale-[0.98]
+        disabled:opacity-40 disabled:pointer-events-none
+        ${props.className || ""}
+      `}
+      style={{
+        backgroundColor: A_SURFACE,
+        color: A_BODY,
+        border: `1px solid ${A_BORDER}`,
+        ...props.style,
+      }}
     />
   );
 }
@@ -373,11 +507,26 @@ export function DangerGhostButton(props: React.ButtonHTMLAttributes<HTMLButtonEl
   return (
     <button
       {...props}
-      className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors hover:opacity-80 disabled:opacity-50 ${props.className || ""}`}
-      style={{ backgroundColor: "#FEF2F2", color: "#B91C1C", border: "1px solid #FECACA", ...props.style }}
+      className={`
+        inline-flex items-center justify-center gap-1.5
+        rounded-lg px-3.5 py-2 text-[13px] font-medium
+        transition-all duration-150
+        hover:bg-red-50 hover:border-red-300 hover:text-red-700
+        active:scale-[0.98]
+        disabled:opacity-40 disabled:pointer-events-none
+        ${props.className || ""}
+      `}
+      style={{
+        backgroundColor: "#FEF2F2",
+        color: "#B91C1C",
+        border: "1px solid #FECACA",
+        ...props.style,
+      }}
     />
   );
 }
+
+// ── Modal ──────────────────────────────────────────────────────
 
 export function Modal({
   title,
@@ -391,28 +540,66 @@ export function Modal({
   wide?: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.4)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
+        animation: "modal-bg-in 200ms ease-out",
+      }}
+      onClick={onClose}
+    >
       <div
-        className={`w-full bg-white p-5 shadow-xl ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"} max-h-[92vh] overflow-y-auto rounded-t-xl sm:rounded-lg`}
-        style={{ border: `1px solid ${A_BORDER}` }}
+        className={`
+          w-full bg-white shadow-2xl
+          max-h-[92vh] overflow-y-auto
+          rounded-t-2xl sm:rounded-2xl
+          ${wide ? "sm:max-w-2xl" : "sm:max-w-lg"}
+        `}
+        style={{
+          boxShadow: "0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+          animation: "modal-card-in 280ms cubic-bezier(0.32, 0.72, 0, 1)",
+        }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-bold" style={{ color: A_INK }}>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b px-5 py-4" style={{ borderColor: A_BORDER, backgroundColor: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)" }}>
+          <h2 className="text-[15px] font-semibold" style={{ color: A_INK }}>
             {title}
           </h2>
-          <button onClick={onClose} className="rounded px-2 py-1 text-xs font-semibold" style={{ color: A_MUTED }} aria-label="Close">
-            ✕
+          <button
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:bg-stone-100"
+            style={{ color: A_MUTED }}
+            aria-label="Close"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M11 3L3 11M3 3l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
-        {children}
+        <div className="px-5 py-4">
+          {children}
+        </div>
       </div>
+      <style>{`
+        @keyframes modal-bg-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modal-card-in {
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </div>
   );
 }
+
+// ── Search Input ───────────────────────────────────────────────
 
 export function SearchInput({
   value,
@@ -424,17 +611,34 @@ export function SearchInput({
   placeholder: string;
 }) {
   return (
-    <input
-      type="search"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      aria-label={placeholder}
-      style={inputStyle}
-      className="admin-input"
-    />
+    <div className="relative">
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={A_MUTED}
+        strokeWidth="2"
+        strokeLinecap="round"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <input
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        aria-label={placeholder}
+        style={{ ...inputBase, paddingLeft: 36 }}
+        className={`${inputFocusClass}`}
+      />
+    </div>
   );
 }
+
+// ── Row Actions ────────────────────────────────────────────────
 
 export function RowActions({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap gap-1.5">{children}</div>;
