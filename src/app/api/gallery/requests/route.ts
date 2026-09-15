@@ -104,7 +104,8 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  if (status === "rejected" || status === "pending") {
+  if (status === "rejected") {
+    // Delete from gallery_images if it was previously approved
     const { data: req } = await supabase
       .from("gallery_requests")
       .select("image_url")
@@ -117,6 +118,12 @@ export async function PATCH(request: NextRequest) {
         .delete()
         .eq("image_url", req.image_url);
     }
+
+    // Delete the request itself from gallery_requests
+    await supabase
+      .from("gallery_requests")
+      .delete()
+      .eq("id", id);
   }
 
   return NextResponse.json({ ok: true });
