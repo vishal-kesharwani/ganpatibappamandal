@@ -3,9 +3,10 @@
 /**
  * Database-driven home sections with static fallbacks:
  * announcements, What's Happening Now / Next (dynamic clock),
- * today's schedule, and the 7-day journey strip.
+ * today's schedule (train-style live tracker), and the 7-day journey strip.
  */
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { getCurrentDay, isFestivalActive, formatTime12, getTimeUntil } from "@/lib/utils";
 import {
   useLiveEvents,
@@ -13,8 +14,81 @@ import {
   useLiveDays,
   getHappeningNow,
   categoryLabel,
+  minutesOf,
   type DbEvent,
 } from "@/lib/public-data";
+
+/** Ticking clock so the tracker moves without reload (every 30s). */
+function useNow(intervalMs = 30000) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(new Date()), intervalMs);
+    return () => window.clearInterval(t);
+  }, [intervalMs]);
+  return now;
+}
+
+type TrackStatus = "done" | "live" | "next" | "upcoming";
+
+function trackStatus(
+  event: DbEvent,
+  nowMin: number,
+  isNext: boolean
+): { status: TrackStatus; endMin: number } {
+  const startMin = minutesOf(event.time);
+  const endMin = event.timeEnd ? minutesOf(event.timeEnd) : startMin + 30;
+  if (nowMin >= startMin && nowMin <= endMin) return { status: "live", endMin };
+  if (nowMin > endMin) return { status: "done", endMin };
+  return { status: isNext ? "next" : "upcoming", endMin };
+}
+
+function proximityLabel(minsLeft: number): string {
+  if (minsLeft <= 15) return "Almost there";
+  if (minsLeft <= 60) return "Getting close";
+  if (minsLeft <= 120) return "On the way";
+  return "Far";
+}
+
+/** Train-style journey strip: position between last done event and next one. */
+function JourneyProgress({ events, nowMin }: { events: DbEvent[]; nowMin: number }) {
+  const sorted = [...events].sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
+  const next = sorted.find((e) => {
+    const end = e.timeEnd ? minutesOf(e.timeEnd) : minutesOf(e.time) + 30;
+    return nowMin <= end;
+  });
+  if (!next || minutesOf(next.time) <= nowMin) return null;
+
+  const nextStart = minutesOf(next.time);
+  const doneEnds = sorted
+    .map((e) => (e.timeEnd ? minutesOf(e.timeEnd) : minutesOf(e.time) + 30))
+    .filter((end) => end <= nowMin);
+  const anchor = doneEnds.length > 0 ? Math.max(...doneEnds) : nextStart - 120;
+  const progress = Math.min(100, Math.max(4, ((nowMin - anchor) / Math.max(1, nextStart - anchor)) * 100));
+  const minsLeft = nextStart - nowMin;
+
+  return (
+    <div className="mb-3 rounded-lg border border-[#EA580C]/30 bg-[#FFF8F0] p-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate font-gotu text-xs font-bold text-[#1C1917]">
+          Next: {next.titleMarathi}
+        </p>
+        <p className="shrink-0 text-[10px] font-semibold text-[#EA580C]">
+          {getTimeUntil(next.time)} to go · {proximityLabel(minsLeft)}
+        </p>
+      </div>
+      <div className="relative mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7E5E4]">
+        <div
+          className="h-full rounded-full bg-[#EA580C] transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="mt-1 flex justify-between text-[9px] text-[#A8A29E]">
+        <span>{doneEnds.length > 0 ? "Last done" : "Day start"}</span>
+        <span>{formatTime12(next.time)}</span>
+      </div>
+    </div>
+  );
+}
 
 function NowCard({ events }: { events: DbEvent[] }) {
   const { live, next } = getHappeningNow(events);
@@ -220,62 +294,141 @@ export default function HomeLive() {
       )}
 
       {festivalActive && todayEvents.length > 0 && (
-        <section className="px-5 pb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-[#1C1917]">Today&apos;s Schedule</h2>
-              <p className="mt-0.5 text-[10px] text-[#A8A29E]">
-                Day {currentDay}
-                {todayMeta ? ` · ${todayMeta.dayOfWeek}` : ""}
-              </p>
-            </div>
-            <Link
-              href={`/festival?day=${currentDay}`}
-              className="text-xs font-medium text-[#EA580C] transition-colors hover:text-[#7C2D12]"
-            >
-              View Full →
-            </Link>
-          </div>
-
-          <div className="rounded-lg border border-[#E7E5E4] bg-white p-4">
-            <div className="space-y-0">
-              {todayEvents.slice(0, 5).map((event, idx) => (
-                <div key={event.id} className="relative flex items-start gap-3">
-                  <div className="flex w-6 shrink-0 flex-col items-center">
-                    <div className={`mt-1.5 h-2 w-2 rounded-full ${idx === 0 ? "bg-[#EA580C]" : "bg-[#E7E5E4]"}`} />
-                    {idx < Math.min(todayEvents.length, 5) - 1 && <div className="h-8 w-px bg-[#E7E5E4]" />}
-                  </div>
-                  <div className="flex-1 pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      {event.aartiSlug ? (
-                        <Link href={`/aarti/${event.aartiSlug}`} className="font-gotu text-sm text-[#1C1917] hover:text-[#7C2D12] hover:underline">
-                          {event.titleMarathi}
-                        </Link>
-                      ) : (
-                        <p className="font-gotu text-sm text-[#1C1917]">{event.titleMarathi}</p>
-                      )}
-                      <span className="shrink-0 font-mono text-[10px] text-[#A8A29E]">
-                        {formatTime12(event.time)}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[10px] text-[#A8A29E]">{categoryLabel(event.category)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {todayEvents.length > 5 && (
-              <Link
-                href="/events"
-                className="mt-3 block border-t border-[#E7E5E4] pt-3 text-center text-xs text-[#EA580C]"
-              >
-                View all {todayEvents.length} events →
-              </Link>
-            )}
-          </div>
-        </section>
+        <TodayTracker
+          events={todayEvents}
+          currentDay={currentDay}
+          dayLabel={todayMeta ? todayMeta.dayOfWeek : undefined}
+        />
       )}
 
     </>
+  );
+}
+
+/** Train-style live schedule tracker: done / live / next / upcoming. */
+function TodayTracker({
+  events,
+  currentDay,
+  dayLabel,
+}: {
+  events: DbEvent[];
+  currentDay: number;
+  dayLabel?: string;
+}) {
+  const now = useNow();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const sorted = [...events].sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
+  const nextId = (() => {
+    const n = sorted.find((e) => {
+      const end = e.timeEnd ? minutesOf(e.timeEnd) : minutesOf(e.time) + 30;
+      return nowMin < minutesOf(e.time) && nowMin <= end;
+    });
+    return n ? n.id : null;
+  })();
+  const shown = sorted.slice(0, 5);
+
+  return (
+    <section className="px-5 pb-8">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-bold text-[#1C1917]">Today&apos;s Schedule</h2>
+          <p className="mt-0.5 text-[10px] text-[#A8A29E]">
+            Day {currentDay}
+            {dayLabel ? ` · ${dayLabel}` : ""}
+          </p>
+        </div>
+        <Link
+          href={`/festival?day=${currentDay}`}
+          className="text-xs font-medium text-[#EA580C] transition-colors hover:text-[#7C2D12]"
+        >
+          View Full →
+        </Link>
+      </div>
+
+      <JourneyProgress events={sorted} nowMin={nowMin} />
+
+      <div className="rounded-lg border border-[#E7E5E4] bg-white p-4">
+        <div className="space-y-0">
+          {shown.map((event, idx) => {
+            const { status } = trackStatus(event, nowMin, event.id === nextId);
+            const isDone = status === "done";
+            const isLive = status === "live";
+            const isNext = status === "next";
+            return (
+              <div
+                key={event.id}
+                className={`relative flex items-start gap-3 rounded-md ${
+                  isNext ? "-mx-2 border border-[#EA580C]/40 bg-[#FFF8F0] px-2 pt-2" : ""
+                } ${isDone ? "opacity-60" : ""}`}
+              >
+                <div className="flex w-6 shrink-0 flex-col items-center">
+                  {isDone ? (
+                    <span className="mt-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#15803D] text-[9px] font-bold text-white">
+                      ✓
+                    </span>
+                  ) : isLive ? (
+                    <span className="relative mt-1.5 flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                    </span>
+                  ) : (
+                    <div
+                      className={`mt-1.5 h-2 w-2 rounded-full ${
+                        isNext ? "bg-[#EA580C] ring-2 ring-[#EA580C]/25" : "bg-[#E7E5E4]"
+                      }`}
+                    />
+                  )}
+                  {idx < shown.length - 1 && <div className="h-8 w-px bg-[#E7E5E4]" />}
+                </div>
+                <div className="flex-1 pb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    {event.aartiSlug ? (
+                      <Link
+                        href={`/aarti/${event.aartiSlug}`}
+                        className="font-gotu text-sm text-[#1C1917] hover:text-[#7C2D12] hover:underline"
+                      >
+                        {event.titleMarathi}
+                      </Link>
+                    ) : (
+                      <p className="font-gotu text-sm text-[#1C1917]">{event.titleMarathi}</p>
+                    )}
+                    <span className="shrink-0 font-mono text-[10px] text-[#A8A29E]">
+                      {formatTime12(event.time)}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-[10px] text-[#A8A29E]">
+                    <span>{categoryLabel(event.category)}</span>
+                    {isDone && (
+                      <span className="rounded-full bg-[#15803D]/10 px-1.5 py-px font-semibold text-[#15803D]">
+                        Done
+                      </span>
+                    )}
+                    {isLive && (
+                      <span className="rounded-full bg-red-500/10 px-1.5 py-px font-semibold text-red-500">
+                        Live now
+                      </span>
+                    )}
+                    {isNext && (
+                      <span className="rounded-full bg-[#EA580C]/15 px-1.5 py-px font-semibold text-[#EA580C]">
+                        Next · {getTimeUntil(event.time)} to go
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {sorted.length > 5 && (
+          <Link
+            href="/events"
+            className="mt-3 block border-t border-[#E7E5E4] pt-3 text-center text-xs text-[#EA580C]"
+          >
+            View all {sorted.length} events →
+          </Link>
+        )}
+      </div>
+    </section>
   );
 }
