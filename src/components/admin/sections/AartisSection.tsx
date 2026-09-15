@@ -215,10 +215,14 @@ export default function AartisSection() {
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
-                    <GhostButton onClick={() => startEdit(a)}>Edit</GhostButton>
-                    <GhostButton onClick={() => move(a, -1)} aria-label="Move up">↑</GhostButton>
-                    <DangerGhostButton onClick={() => remove(a)}>Del</DangerGhostButton>
-                    <GhostButton onClick={() => move(a, 1)} aria-label="Move down">↓</GhostButton>
+                    <div className="flex gap-1">
+                      <GhostButton onClick={() => startEdit(a)}>Edit</GhostButton>
+                      <DangerGhostButton onClick={() => remove(a)}>Del</DangerGhostButton>
+                    </div>
+                    <div className="flex gap-1">
+                      <GhostButton onClick={() => move(a, -1)} aria-label="Move up">↑</GhostButton>
+                      <GhostButton onClick={() => move(a, 1)} aria-label="Move down">↓</GhostButton>
+                    </div>
                   </div>
                 </div>
               </div>
