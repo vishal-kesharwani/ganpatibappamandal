@@ -86,7 +86,7 @@ export const MANDAL_INFO: MandalInfo = {
   address: "Triveni Sangam Apartment, Kaneri, Bhiwandi, Maharashtra 421302",
   about: "OM SAI MITRA MANDAL is a community organization established in the heart of Triveni Sangam Apartment, Kaneri, Bhiwandi. For years, we have been celebrating Ganesh Chaturthi with great devotion and community participation. Our mission is to bring people together through faith, culture, and social service.",
   mission: "To foster community spirit through religious celebrations, cultural activities, and social initiatives. We believe in bringing people together under the blessings of Lord Ganesha.",
-  establishedYear: 2010,
+  establishedYear: 2014,
   activities: [
     "Annual Ganesh Chaturthi Celebration",
     "Cultural Programs and Competitions",

@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FESTIVAL_CONFIG } from "@/data/festival";
+import { MANDAL_INFO } from "@/data/info";
+
+const MANDAL_YEAR = FESTIVAL_CONFIG.year - MANDAL_INFO.establishedYear + 1;
 import { getCurrentDay, isFestivalActive } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
@@ -46,6 +49,9 @@ export default function HomePage() {
               </h1>
               <p className="text-sm text-[#57534E]">
                 Ganeshotsav 2026
+              </p>
+              <p className="inline-block rounded-full bg-[#7C2D12] px-3 py-1 text-[10px] font-bold text-white">
+                Celebrating {MANDAL_YEAR}th Year · १३वे वर्ष
               </p>
               <FestivalDateRange className="text-xs text-[#A8A29E] font-gotu" />
             </div>

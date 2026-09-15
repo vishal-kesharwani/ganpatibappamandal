@@ -24,7 +24,9 @@ export default function MandalPage() {
             <h2 className="text-lg font-bold text-[#7C2D12] font-gotu">{site.mandalName}</h2>
             <p className="text-[#57534E] text-sm mt-1">{site.location}</p>
             {site.establishedYear > 0 && (
-              <p className="text-[#A8A29E] text-xs mt-1">Est. {site.establishedYear}</p>
+              <p className="text-[#A8A29E] text-xs mt-1">
+                Est. {site.establishedYear} · Celebrating {new Date().getFullYear() - site.establishedYear + 1}th Year
+              </p>
             )}
           </div>
 
