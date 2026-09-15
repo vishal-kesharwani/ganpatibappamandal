@@ -230,7 +230,7 @@ export default function GalleryPage() {
 
       {/* Lightbox with prev/next + download + share */}
       {lightboxItem && lightboxIndex !== null && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: "rgba(0,0,0,0.97)" }}>
+        <div className="fixed inset-0 z-[60] flex flex-col" style={{ backgroundColor: "rgba(0,0,0,0.97)" }}>
           {/* Top bar — counter + close */}
           <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
             <p className="text-[13px] font-medium text-white/70">
@@ -286,21 +286,21 @@ export default function GalleryPage() {
           </div>
 
           {/* Bottom actions — Download + WhatsApp */}
-          <div className="flex items-center justify-center gap-3 px-4 py-4 safe-area-pb">
+          <div className="flex items-center justify-center gap-3 px-4 pb-6 pt-3">
             <button
               onClick={() => handleDownload(lightboxItem.src, lightboxItem.alt)}
-              className="flex items-center gap-2 rounded-xl px-5 py-3 text-[13px] font-semibold text-white transition-colors"
-              style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
+              className="flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-semibold text-white transition-colors"
+              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
             >
-              <Download size={17} />
+              <Download size={18} />
               Download
             </button>
             <button
               onClick={() => handleWhatsAppShare(lightboxItem.src, lightboxItem.alt)}
-              className="flex items-center gap-2 rounded-xl px-5 py-3 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+              className="flex items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#25D366" }}
             >
-              <Share2 size={17} />
+              <Share2 size={18} />
               WhatsApp
             </button>
           </div>
@@ -309,7 +309,7 @@ export default function GalleryPage() {
 
       {/* Request to Upload modal */}
       {showRequest && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center" onClick={() => setShowRequest(false)}>
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-end sm:items-center justify-center" onClick={() => setShowRequest(false)}>
           <div
             className="w-full max-w-lg bg-[#FAF7F2] rounded-t-2xl sm:rounded-2xl p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
@@ -455,7 +455,7 @@ export default function GalleryPage() {
         </div>
       )}
 
-      <BottomNav />
+      {!lightboxItem && !showRequest && <BottomNav />}
     </>
   );
 }
