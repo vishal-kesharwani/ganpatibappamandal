@@ -3,6 +3,7 @@
 /** Aartis — list view with metadata cards, lyrics in modal. */
 import { useState } from "react";
 import type { Database } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import {
   useTable, useToast, useConfirm, Spinner, EmptyState, MissingTableNotice,
   Badge, Modal, Field, TextInput, TextArea, SectionHeader, FilterBar,
@@ -133,6 +134,16 @@ export default function AartisSection() {
     push(res.ok ? "success" : "error", res.message);
   };
 
+  const move = async (a: Aarti, dir: -1 | 1) => {
+    const sorted = [...table.rows].sort((x, y) => x.sort_order - y.sort_order);
+    const idx = sorted.findIndex((x) => x.id === a.id);
+    const other = sorted[idx + dir];
+    if (!other) return;
+    await db.from("aartis").update({ sort_order: other.sort_order }).eq("id", a.id);
+    await db.from("aartis").update({ sort_order: a.sort_order }).eq("id", other.id);
+    table.reload();
+  };
+
   if (table.loading) return <Spinner />;
   if (table.missingTable) return <MissingTableNotice tables="aartis" />;
   if (table.error) return <EmptyState title="Could not load aartis" hint={table.error} action={<GhostButton onClick={table.reload}>Retry</GhostButton>} />;
@@ -204,6 +215,8 @@ export default function AartisSection() {
                     </div>
                   </div>
                   <div className="flex shrink-0 gap-1.5">
+                    <GhostButton onClick={() => move(a, -1)} aria-label="Move up">↑</GhostButton>
+                    <GhostButton onClick={() => move(a, 1)} aria-label="Move down">↓</GhostButton>
                     <GhostButton onClick={() => startEdit(a)}>Edit</GhostButton>
                     <DangerGhostButton onClick={() => remove(a)}>Del</DangerGhostButton>
                   </div>
