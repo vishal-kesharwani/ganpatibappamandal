@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { minutesOf } from "@/lib/public-data";
 import {
-  Spinner, Badge, A_BORDER, A_INK, A_BODY, A_MUTED, A_MAROON,
-  A_SURFACE, A_SHADOW_SM, A_SHADOW_MD, A_TRANSITION,
+  Spinner, Badge, SectionHeader,
+  A_BORDER, A_INK, A_BODY, A_MUTED, A_MAROON,
+  A_SURFACE, A_SHADOW_SM,
 } from "@/components/admin/ui";
 import { toMarathiDigits } from "@/components/admin/AdminShell";
 
@@ -50,8 +51,7 @@ async function festivalDayToday(): Promise<number> {
   }
   const t = new Date();
   const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
-  const idx = starts.indexOf(iso);
-  return idx >= 0 ? idx + 1 : 0;
+  return starts.indexOf(iso) >= 0 ? starts.indexOf(iso) + 1 : 0;
 }
 
 export default function OverviewSection() {
@@ -112,15 +112,7 @@ export default function OverviewSection() {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) return <Spinner label="Loading live stats…" />;
-
-  const cards: { label: string; value: number | null; href: string; icon: string }[] = [
-    { label: "Aartis", value: counts.aartis, href: "/admin/aartis", icon: "🪔" },
-    { label: "Events", value: counts.events, href: "/admin/events", icon: "🎯" },
-    { label: "Notices", value: counts.notices, href: "/admin/notices", icon: "📢" },
-    { label: "Gallery", value: counts.gallery, href: "/admin/gallery", icon: "🖼" },
-    { label: "Days", value: counts.days, href: "/admin/days", icon: "📅" },
-  ];
+  if (loading) return <Spinner label="Loading dashboard…" />;
 
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
   const sortedToday = [...todayEvents].sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
@@ -131,8 +123,28 @@ export default function OverviewSection() {
 
   const mandalYear = new Date().getFullYear() - 2014 + 1;
 
+  const quickActions = [
+    { label: "Add Event", href: "/admin/events", icon: "🎯" },
+    { label: "Add Aarti", href: "/admin/aartis", icon: "🪔" },
+    { label: "Add Notice", href: "/admin/notices", icon: "📢" },
+    { label: "Add Photo", href: "/admin/gallery", icon: "🖼" },
+  ];
+
+  const statCards = [
+    { label: "Aartis", value: counts.aartis, href: "/admin/aartis", icon: "🪔" },
+    { label: "Events", value: counts.events, href: "/admin/events", icon: "🎯" },
+    { label: "Notices", value: counts.notices, href: "/admin/notices", icon: "📢" },
+    { label: "Photos", value: counts.gallery, href: "/admin/gallery", icon: "🖼" },
+    { label: "Days", value: counts.days, href: "/admin/days", icon: "📅" },
+  ];
+
   return (
     <div className="space-y-5">
+      <SectionHeader
+        title={`Welcome back 👋`}
+        description={today >= 1 ? `Festival Day ${today} of 7` : "Festival not active today"}
+      />
+
       {/* Year banner */}
       <div
         className="overflow-hidden rounded-2xl p-5 text-center"
@@ -145,78 +157,92 @@ export default function OverviewSection() {
           🪔 {toMarathiDigits(mandalYear)}वे वर्ष · {mandalYear}th Year
         </p>
         <p className="mt-1 text-[12px]" style={{ color: "#D6A77A" }}>
-          OM SAI MITRA MANDAL · Est. 2014 · Triveni Sangam Apartment, Kaneri
+          OM SAI MITRA MANDAL · Est. 2014 · Kaneri, Bhiwandi
         </p>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        {cards.map((c) => (
-          <Link
-            key={c.label}
-            href={c.href}
-            className="group overflow-hidden rounded-2xl p-4 text-center transition-all duration-200 hover:shadow-md active:scale-[0.98]"
-            style={{
-              backgroundColor: A_SURFACE,
-              border: `1px solid ${A_BORDER}`,
-              boxShadow: A_SHADOW_SM,
-            }}
-          >
-            <span className="text-xl">{c.icon}</span>
-            <p className="mt-2 text-3xl font-bold tracking-tight" style={{ color: A_MAROON }}>
-              {c.value === null ? "—" : c.value}
-            </p>
-            <p className="mt-1 text-[11px] font-medium" style={{ color: A_MUTED }}>
-              {c.label}
-            </p>
-          </Link>
-        ))}
-      </div>
-
       {/* Live status */}
-      {(liveNow || upcoming) && (
+      {(liveNow || upcoming || today >= 1) && (
         <div
-          className="overflow-hidden rounded-2xl p-5"
-          style={{
-            backgroundColor: A_SURFACE,
-            border: `1px solid ${A_BORDER}`,
-            boxShadow: A_SHADOW_SM,
-          }}
+          className="rounded-2xl p-5"
+          style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}
         >
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest" style={{ color: A_MUTED }}>
-            Happening {today >= 1 ? `(Day ${today})` : ""}
+            {today >= 1 ? `Today — Day ${today}` : "Schedule"}
           </p>
-          <div className="space-y-3">
-            {liveNow && (
-              <div className="flex items-center gap-3">
-                <Badge tone="red">LIVE NOW</Badge>
-                <p className="text-[13px] font-semibold" style={{ color: A_INK }}>
-                  {liveNow.time} — {liveNow.title_marathi || liveNow.title}
-                </p>
-              </div>
-            )}
-            {upcoming && (
-              <div className="flex items-center gap-3">
-                <Badge tone="amber">NEXT</Badge>
-                <p className="text-[13px] font-semibold" style={{ color: A_INK }}>
-                  {upcoming.time} — {upcoming.title_marathi || upcoming.title}
-                </p>
-              </div>
-            )}
-          </div>
+          {liveNow ? (
+            <div className="flex items-center gap-3">
+              <Badge tone="red">LIVE NOW</Badge>
+              <p className="text-[14px] font-semibold" style={{ color: A_INK }}>
+                {liveNow.time} — {liveNow.title_marathi || liveNow.title}
+              </p>
+            </div>
+          ) : upcoming ? (
+            <div className="flex items-center gap-3">
+              <Badge tone="amber">NEXT</Badge>
+              <p className="text-[14px] font-semibold" style={{ color: A_INK }}>
+                {upcoming.time} — {upcoming.title_marathi || upcoming.title}
+              </p>
+            </div>
+          ) : (
+            <p className="text-[13px]" style={{ color: A_MUTED }}>No more events today.</p>
+          )}
         </div>
       )}
 
-      {/* Two-column panels */}
+      {/* Quick actions */}
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: A_MUTED }}>
+          Quick Actions
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {quickActions.map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="flex items-center gap-2 rounded-xl p-3 text-[13px] font-medium transition-all duration-150 active:scale-[0.98]"
+              style={{
+                backgroundColor: A_SURFACE,
+                border: `1px solid ${A_BORDER}`,
+                color: A_INK,
+                boxShadow: A_SHADOW_SM,
+              }}
+            >
+              <span className="text-[16px]">{a.icon}</span>
+              {a.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: A_MUTED }}>
+          Content
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+          {statCards.map((c) => (
+            <Link
+              key={c.label}
+              href={c.href}
+              className="rounded-xl p-4 text-center transition-all duration-150 active:scale-[0.98]"
+              style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}
+            >
+              <span className="text-[18px]">{c.icon}</span>
+              <p className="mt-1 text-2xl font-bold tracking-tight" style={{ color: A_MAROON }}>
+                {c.value === null ? "—" : c.value}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium" style={{ color: A_MUTED }}>{c.label}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Schedule + Recent */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Today's schedule */}
         <div
           className="overflow-hidden rounded-2xl"
-          style={{
-            backgroundColor: A_SURFACE,
-            border: `1px solid ${A_BORDER}`,
-            boxShadow: A_SHADOW_SM,
-          }}
+          style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}
         >
           <div className="border-b px-5 py-3.5" style={{ borderColor: A_BORDER }}>
             <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: A_MUTED }}>
@@ -229,7 +255,7 @@ export default function OverviewSection() {
                 {today >= 1 ? "No events scheduled for today." : "Festival is not active today."}
               </p>
             ) : (
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {todayEvents.slice(0, 8).map((e) => (
                   <li key={e.id} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-stone-50">
                     <span className="text-[13px] font-medium" style={{ color: A_INK }}>
@@ -245,14 +271,9 @@ export default function OverviewSection() {
           </div>
         </div>
 
-        {/* Recent */}
         <div
           className="overflow-hidden rounded-2xl"
-          style={{
-            backgroundColor: A_SURFACE,
-            border: `1px solid ${A_BORDER}`,
-            boxShadow: A_SHADOW_SM,
-          }}
+          style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}
         >
           <div className="border-b px-5 py-3.5" style={{ borderColor: A_BORDER }}>
             <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: A_MUTED }}>
@@ -265,7 +286,7 @@ export default function OverviewSection() {
                 Nothing yet — add your first aarti, event or notice.
               </p>
             ) : (
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {recent.map((r, i) => (
                   <li key={i}>
                     <Link

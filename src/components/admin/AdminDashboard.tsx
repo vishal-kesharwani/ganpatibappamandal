@@ -41,7 +41,7 @@ export default function AdminDashboard({
       {safe === "overview" && <OverviewSection />}
       {safe === "days" && <DaysSection />}
       {safe === "events" && <EventsSection />}
-      {safe === "aartis" && <AartisSection initialEditSlug={editSlug} />}
+      {safe === "aartis" && <AartisSection />}
       {safe === "notices" && <NoticesSection />}
       {safe === "gallery" && <GallerySection />}
       {safe === "mandal" && <MandalSection />}

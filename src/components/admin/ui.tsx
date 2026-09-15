@@ -338,9 +338,11 @@ export function MissingTableNotice({ tables }: { tables: string }) {
 export function Badge({
   tone,
   children,
+  style,
 }: {
   tone: "green" | "red" | "amber" | "maroon" | "gray";
   children: ReactNode;
+  style?: React.CSSProperties;
 }) {
   const styles: Record<string, { bg: string; fg: string }> = {
     green: { bg: "#DCFCE7", fg: "#15803D" },
@@ -353,7 +355,7 @@ export function Badge({
   return (
     <span
       className="inline-block shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide"
-      style={{ backgroundColor: s.bg, color: s.fg }}
+      style={{ backgroundColor: s.bg, color: s.fg, ...style }}
     >
       {children}
     </span>
@@ -642,4 +644,116 @@ export function SearchInput({
 
 export function RowActions({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap gap-1.5">{children}</div>;
+}
+
+// ── Skeleton ───────────────────────────────────────────────────
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse rounded-lg ${className}`}
+      style={{ backgroundColor: "#E7E5E4" }}
+    />
+  );
+}
+
+export function SkeletonCard() {
+  return (
+    <div
+      className="rounded-2xl p-5"
+      style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}` }}
+    >
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-3 w-2/3" />
+        <Skeleton className="h-3 w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+// ── Section Header ─────────────────────────────────────────────
+
+export function SectionHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 className="text-[18px] font-semibold" style={{ color: A_INK }}>
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-0.5 text-[13px]" style={{ color: A_MUTED }}>
+            {description}
+          </p>
+        )}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// ── Card Row (mobile-friendly list item) ──────────────────────
+
+export function CardRow({
+  children,
+  onClick,
+  className = "",
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-xl p-4 transition-all duration-150 ${
+        onClick ? "cursor-pointer active:scale-[0.99]" : ""
+      } ${className}`}
+      style={{
+        backgroundColor: A_SURFACE,
+        border: `1px solid ${A_BORDER}`,
+        boxShadow: A_SHADOW_SM,
+      }}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ── Filter Bar ─────────────────────────────────────────────────
+
+export function FilterBar({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="mb-4 rounded-2xl p-3"
+      style={{
+        backgroundColor: A_SURFACE,
+        border: `1px solid ${A_BORDER}`,
+        boxShadow: A_SHADOW_SM,
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Status Dot ─────────────────────────────────────────────────
+
+export function StatusDot({ active }: { active: boolean }) {
+  return (
+    <span
+      className="inline-block h-2 w-2 rounded-full"
+      style={{ backgroundColor: active ? "#16A34A" : "#D1D5DB" }}
+    />
+  );
 }

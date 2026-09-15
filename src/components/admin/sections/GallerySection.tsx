@@ -8,9 +8,9 @@ import { supabase, db } from "@/lib/supabase";
 import { GALLERY_CATEGORIES } from "@/lib/aarti-meta";
 import {
   useTable, useToast, useConfirm, Spinner, EmptyState, MissingTableNotice,
-  Badge, Modal, Field, TextInput, SelectInput,
+  Badge, Modal, Field, TextInput, SelectInput, SectionHeader, FilterBar,
   PrimaryButton, GhostButton, DangerGhostButton, Toggle, RowActions,
-  A_BORDER, A_INK, A_BODY, A_MUTED,
+  A_BORDER, A_INK, A_BODY, A_MUTED, A_SURFACE, A_SHADOW_SM,
 } from "@/components/admin/ui";
 
 type Photo = Database["public"]["Tables"]["gallery_images"]["Row"];
@@ -34,6 +34,7 @@ function RequestsPanel({ onApproved }: { onApproved: () => void }) {
   const [requests, setRequests] = useState<GalleryRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,65 +55,61 @@ function RequestsPanel({ onApproved }: { onApproved: () => void }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status: action }),
     });
-
     push("success", action === "approved" ? "Photo approved and published." : "Photo rejected.");
     load();
     onApproved();
   };
 
   return (
-    <div className="rounded-lg bg-white p-3 space-y-3" style={{ border: `1px solid ${A_BORDER}` }}>
+    <div className="rounded-2xl p-4" style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}>
       <div className="flex items-center gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: A_INK }}>
-          User Uploads
-        </h3>
+        <h3 className="text-[13px] font-semibold" style={{ color: A_INK }}>User Uploads</h3>
         {pendingCount > 0 && (
           <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: "#EA580C" }}>
-            {pendingCount} pending
+            {pendingCount}
           </span>
         )}
       </div>
 
-      <div className="flex gap-1.5">
+      <FilterBar>
         {(["pending", "approved", "rejected", "all"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className="chip"
-            data-active={filter === s}
+            className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all ${filter === s ? "text-white" : ""}`}
+            style={filter === s ? { backgroundColor: "#7C2D12", color: "white" } : { color: A_BODY }}
           >
             {s.charAt(0).toUpperCase() + s.slice(1)}
           </button>
         ))}
-      </div>
+      </FilterBar>
 
       {loading ? (
         <Spinner />
       ) : visible.length === 0 ? (
-        <p className="text-xs py-4 text-center" style={{ color: A_MUTED }}>
+        <p className="py-4 text-center text-[12px]" style={{ color: A_MUTED }}>
           No {filter === "all" ? "" : filter} requests.
         </p>
       ) : (
         <div className="space-y-2">
           {visible.map((req) => (
-            <div key={req.id} className="flex gap-3 rounded-lg p-2" style={{ border: `1px solid ${A_BORDER}` }}>
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-[#F5E5E4]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div key={req.id} className="flex gap-3 rounded-xl p-3" style={{ border: `1px solid ${A_BORDER}` }}>
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#F5EDE0]">
                 <img src={req.image_url} alt={req.caption || "Request"} className="h-full w-full object-cover" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium truncate" style={{ color: A_INK }}>
+                <p className="truncate text-[13px] font-medium" style={{ color: A_INK }}>
                   {req.name}{req.phone ? ` · ${req.phone}` : ""}
                 </p>
-                {req.caption && <p className="text-[10px] truncate" style={{ color: A_MUTED }}>{req.caption}</p>}
-                <div className="mt-1 flex flex-wrap gap-1">
+                {req.caption && <p className="truncate text-[11px]" style={{ color: A_MUTED }}>{req.caption}</p>}
+                <div className="mt-1.5 flex flex-wrap gap-1">
                   <Badge tone="maroon">{req.category}</Badge>
                   <Badge tone={req.status === "approved" ? "green" : req.status === "rejected" ? "red" : "amber"}>
                     {req.status}
                   </Badge>
                 </div>
                 {req.status === "pending" && (
-                  <div className="mt-1.5 flex gap-1.5">
+                  <div className="mt-2 flex gap-1.5">
                     <PrimaryButton onClick={() => handleAction(req.id, "approved")}>Approve</PrimaryButton>
                     <DangerGhostButton onClick={() => handleAction(req.id, "rejected")}>Reject</DangerGhostButton>
                   </div>
@@ -139,6 +136,7 @@ export default function GallerySection() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [catFilter, setCatFilter] = useState("all");
+  const [dragOver, setDragOver] = useState(false);
 
   const set = (k: string, v: string | number | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -181,6 +179,15 @@ export default function GallerySection() {
       setUploading(false);
     }
   };
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      await uploadFile(file);
+    }
+  }, []);
 
   const save = async () => {
     if (!form.image_url.trim()) {
@@ -233,73 +240,119 @@ export default function GallerySection() {
   const visible = catFilter === "all" ? table.rows : table.rows.filter((p) => p.category === catFilter);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <SectionHeader
+        title="Gallery"
+        description={`${table.rows.length} photo${table.rows.length !== 1 ? "s" : ""} in gallery`}
+        action={<PrimaryButton onClick={startAdd}>+ Add photo</PrimaryButton>}
+      />
+
       <RequestsPanel onApproved={() => table.reload()} />
 
-      <div className="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3" style={{ border: `1px solid ${A_BORDER}` }}>
-        <SelectInput value={catFilter} onChange={(e) => setCatFilter(e.target.value)} aria-label="Filter by category" style={{ maxWidth: 220 }}>
-          <option value="all">All categories</option>
-          {GALLERY_CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>{c.label}</option>
-          ))}
-        </SelectInput>
-        <span className="flex-1" />
-        <PrimaryButton onClick={startAdd}>+ Add photo</PrimaryButton>
-      </div>
-
-      {visible.length === 0 && (
-        <EmptyState title="No photos" hint="Upload festival photos — the public gallery updates automatically." action={<PrimaryButton onClick={startAdd}>+ Add photo</PrimaryButton>} />
-      )}
-
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
-        {visible.map((p) => (
-          <div key={p.id} className="overflow-hidden rounded-lg bg-white" style={{ border: `1px solid ${A_BORDER}`, opacity: p.published ? 1 : 0.6 }}>
-            <div className="relative aspect-square w-full bg-[#F5EDE0]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.image_url} alt={p.caption || "Gallery photo"} className="h-full w-full object-cover" loading="lazy" />
-            </div>
-            <div className="space-y-2 p-3">
-              <p className="truncate text-xs font-medium" style={{ color: A_INK }}>
-                {p.caption || "Untitled"}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                <Badge tone="maroon">{p.category}</Badge>
-                <Badge tone={p.published ? "green" : "gray"}>{p.published ? "Published" : "Hidden"}</Badge>
-              </div>
-              <RowActions>
-                <GhostButton onClick={() => startEdit(p)}>Edit</GhostButton>
-                <GhostButton onClick={() => togglePublished(p)}>{p.published ? "Hide" : "Show"}</GhostButton>
-                <GhostButton onClick={() => move(p, -1)} aria-label="Move up">↑</GhostButton>
-                <GhostButton onClick={() => move(p, 1)} aria-label="Move down">↓</GhostButton>
-                <DangerGhostButton onClick={() => remove(p)}>Delete</DangerGhostButton>
-              </RowActions>
-            </div>
-          </div>
+      <FilterBar>
+        <button
+          className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all ${catFilter === "all" ? "text-white" : ""}`}
+          style={catFilter === "all" ? { backgroundColor: "#7C2D12", color: "white" } : { color: A_BODY }}
+          onClick={() => setCatFilter("all")}
+        >
+          All
+        </button>
+        {GALLERY_CATEGORIES.map((c) => (
+          <button
+            key={c.id}
+            className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all ${catFilter === c.id ? "text-white" : ""}`}
+            style={catFilter === c.id ? { backgroundColor: "#B45309", color: "white" } : { color: A_BODY }}
+            onClick={() => setCatFilter(c.id)}
+          >
+            {c.label}
+          </button>
         ))}
-      </div>
+      </FilterBar>
+
+      {visible.length === 0 ? (
+        <EmptyState
+          title="No photos"
+          hint="Upload festival photos — the public gallery updates automatically."
+          action={<PrimaryButton onClick={startAdd}>+ Add photo</PrimaryButton>}
+        />
+      ) : (
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+          {visible.map((p) => (
+            <div
+              key={p.id}
+              className="overflow-hidden rounded-xl transition-all duration-150 hover:shadow-md"
+              style={{
+                backgroundColor: A_SURFACE,
+                border: `1px solid ${A_BORDER}`,
+                boxShadow: A_SHADOW_SM,
+                opacity: p.published ? 1 : 0.6,
+              }}
+            >
+              <div className="relative aspect-square w-full bg-[#F5EDE0]">
+                <img src={p.image_url} alt={p.caption || "Gallery photo"} className="h-full w-full object-cover" loading="lazy" />
+              </div>
+              <div className="space-y-2 p-3">
+                <p className="truncate text-[12px] font-medium" style={{ color: A_INK }}>
+                  {p.caption || "Untitled"}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  <Badge tone="maroon">{p.category}</Badge>
+                  <Badge tone={p.published ? "green" : "gray"}>{p.published ? "Published" : "Hidden"}</Badge>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <GhostButton onClick={() => startEdit(p)}>Edit</GhostButton>
+                  <GhostButton onClick={() => togglePublished(p)}>{p.published ? "Hide" : "Show"}</GhostButton>
+                  <GhostButton onClick={() => move(p, -1)}>↑</GhostButton>
+                  <GhostButton onClick={() => move(p, 1)}>↓</GhostButton>
+                  <DangerGhostButton onClick={() => remove(p)}>Delete</DangerGhostButton>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {open && (
         <Modal title={editing ? "Edit photo" : "Add photo"} onClose={() => setOpen(false)}>
           <div className="space-y-3">
-            <Field label="Upload image (Supabase Storage)">
-              <input
-                type="file"
-                accept="image/*"
-                disabled={uploading}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void uploadFile(f);
-                }}
-                className="w-full text-sm"
-                style={{ color: A_BODY }}
-              />
-              {uploading && <p className="mt-1 text-xs" style={{ color: A_MUTED }}>Uploading…</p>}
-            </Field>
-            <Field label="…or image URL">
+            {/* Drag-and-drop zone */}
+            <div
+              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all ${
+                dragOver ? "border-[#7C2D12] bg-[#7C2D1208]" : "border-stone-200 bg-stone-50"
+              }`}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+            >
+              {uploading ? (
+                <div className="flex items-center gap-2">
+                  <Spinner />
+                  <p className="text-[13px]" style={{ color: A_MUTED }}>Uploading…</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[13px] font-medium" style={{ color: A_INK }}>Drop an image here</p>
+                  <p className="mt-1 text-[11px]" style={{ color: A_MUTED }}>or click below to browse</p>
+                  <label className="mt-3 cursor-pointer rounded-lg px-4 py-2 text-[12px] font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: "#7C2D12" }}>
+                    Choose file
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void uploadFile(f);
+                      }}
+                    />
+                  </label>
+                </>
+              )}
+            </div>
+            <Field label="…or paste image URL">
               <TextInput value={form.image_url} onChange={(e) => set("image_url", e.target.value)} placeholder="https://…" />
             </Field>
             {form.image_url && (
-              <div className="relative aspect-video w-full overflow-hidden rounded-md bg-[#F5EDE0]" style={{ border: `1px solid ${A_BORDER}` }}>
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#F5EDE0]" style={{ border: `1px solid ${A_BORDER}` }}>
                 <Image src={form.image_url} alt="Preview" fill className="object-cover" unoptimized />
               </div>
             )}

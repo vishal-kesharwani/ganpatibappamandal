@@ -5,14 +5,25 @@ import { useState } from "react";
 import type { Database } from "@/lib/supabase";
 import {
   useTable, useToast, useConfirm, Spinner, EmptyState, MissingTableNotice,
-  Badge, Modal, Field, TextInput, TextArea, PrimaryButton, GhostButton,
-  DangerGhostButton, Toggle, RowActions,
-  A_BORDER, A_INK, A_BODY, A_MUTED,
+  Badge, Modal, Field, TextInput, TextArea, SectionHeader, CardRow,
+  PrimaryButton, GhostButton, DangerGhostButton, Toggle,
+  A_BORDER, A_INK, A_BODY, A_MUTED, A_SURFACE, A_SHADOW_SM,
 } from "@/components/admin/ui";
 
 type Day = Database["public"]["Tables"]["festival_days"]["Row"];
 
 const EMPTY = { day_number: 1, date: "2026-09-14", title: "", description: "", theme: "", active: true, sort_order: 1 };
+
+const DAY_NAMES = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+function getDayName(dateStr: string): string {
+  try {
+    const d = new Date(dateStr + "T12:00:00");
+    return DAY_NAMES[d.getDay()] || "";
+  } catch {
+    return "";
+  }
+}
 
 export default function DaysSection() {
   const { push } = useToast();
@@ -82,56 +93,56 @@ export default function DaysSection() {
   if (table.error) return <EmptyState title="Could not load days" hint={table.error} action={<GhostButton onClick={table.reload}>Retry</GhostButton>} />;
 
   return (
-    <div className="space-y-3">
-      <div className="overflow-x-auto rounded-lg bg-white" style={{ border: `1px solid ${A_BORDER}` }}>
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead>
-            <tr style={{ borderBottom: `1px solid ${A_BORDER}` }}>
-              {["Day", "Date", "Title", "Theme", "Status", "Actions"].map((h) => (
-                <th key={h} className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: A_MUTED }}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {table.rows.map((d) => (
-              <tr key={d.id} style={{ borderBottom: `1px solid ${A_BORDER}` }}>
-                <td className="px-4 py-2 font-bold" style={{ color: A_INK }}>
-                  {d.day_number}
-                </td>
-                <td className="px-4 py-2 font-mono text-xs" style={{ color: A_BODY }}>
-                  {d.date}
-                </td>
-                <td className="px-4 py-2">
-                  <p className="font-medium" style={{ color: A_INK }}>{d.title}</p>
-                  {d.description && <p className="text-[11px]" style={{ color: A_MUTED }}>{d.description}</p>}
-                </td>
-                <td className="px-4 py-2 text-xs" style={{ color: A_BODY }}>
-                  {d.theme || <span style={{ color: A_MUTED }}>—</span>}
-                </td>
-                <td className="px-4 py-2">
-                  <Badge tone={d.active ? "green" : "gray"}>{d.active ? "Active" : "Hidden"}</Badge>
-                </td>
-                <td className="px-4 py-2">
-                  <RowActions>
-                    <GhostButton onClick={() => startEdit(d)}>Edit</GhostButton>
-                    <DangerGhostButton onClick={() => remove(d)}>Delete</DangerGhostButton>
-                  </RowActions>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="space-y-4">
+      <SectionHeader
+        title="Festival Days"
+        description="Manage the 7-day Ganpati Mahotsav schedule"
+        action={<PrimaryButton onClick={startAdd}>+ Add day</PrimaryButton>}
+      />
 
-      {table.rows.length === 0 && (
-        <EmptyState title="No festival days" hint="Seed the 7 festival days, or add them manually." />
+      {table.rows.length === 0 ? (
+        <EmptyState
+          title="No festival days"
+          hint="Seed the 7 festival days, or add them manually."
+          action={<PrimaryButton onClick={startAdd}>+ Add day</PrimaryButton>}
+        />
+      ) : (
+        <div className="space-y-2">
+          {table.rows.map((d) => (
+            <CardRow key={d.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl font-bold"
+                    style={{
+                      backgroundColor: d.active ? "#7C2D1215" : "#F5F5F4",
+                      color: d.active ? "#7C2D12" : A_MUTED,
+                    }}
+                  >
+                    {d.day_number}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-semibold" style={{ color: A_INK }}>{d.title}</p>
+                    <p className="text-[12px]" style={{ color: A_MUTED }}>
+                      {d.date} · {getDayName(d.date)}
+                    </p>
+                    {d.theme && (
+                      <p className="mt-1 text-[12px]" style={{ color: "#B45309" }}>Theme: {d.theme}</p>
+                    )}
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      <Badge tone={d.active ? "green" : "gray"}>{d.active ? "Active" : "Hidden"}</Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-1.5">
+                  <GhostButton onClick={() => startEdit(d)}>Edit</GhostButton>
+                  <DangerGhostButton onClick={() => remove(d)}>Delete</DangerGhostButton>
+                </div>
+              </div>
+            </CardRow>
+          ))}
+        </div>
       )}
-
-      <div>
-        <PrimaryButton onClick={startAdd}>+ Add day</PrimaryButton>
-      </div>
 
       {open && (
         <Modal title={editing ? `Edit Day ${editing.day_number}` : "Add day"} onClose={() => setOpen(false)}>

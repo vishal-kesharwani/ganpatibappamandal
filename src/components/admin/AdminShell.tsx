@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * AdminShell — auth guard + Apple HIG-inspired CMS layout.
- * Desktop: translucent sidebar with refined typography.
- * Mobile/tablet: compact top bar + horizontal section nav.
+ * AdminShell — mobile-first auth guard + CMS layout.
+ * Mobile: hamburger → full-screen drawer navigation.
+ * Desktop: sidebar + sticky translucent header.
  */
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AdminAuthProvider, useAdminAuth } from "@/lib/admin-auth";
 import {
   ToastProvider, Spinner, useConfirm,
@@ -22,19 +22,15 @@ export const ADMIN_SECTIONS = [
   { id: "aartis", label: "Aartis", icon: "🪔" },
   { id: "notices", label: "Notices", icon: "📢" },
   { id: "gallery", label: "Gallery", icon: "🖼" },
-  { id: "mandal", label: "Mandal Info", icon: "ℹ" },
-  { id: "visarjan", label: "Visarjan", icon: "🙏" },
   { id: "contacts", label: "Contacts", icon: "📞" },
+  { id: "mandal", label: "Mandal", icon: "ℹ" },
+  { id: "visarjan", label: "Visarjan", icon: "🙏" },
   { id: "settings", label: "Settings", icon: "⚙" },
 ];
 
-/** Latin digits → Marathi (Devanagari) digits, e.g. 13 → १३. */
 export function toMarathiDigits(n: number): string {
   const map = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
-  return String(n)
-    .split("")
-    .map((ch) => (ch >= "0" && ch <= "9" ? map[Number(ch)] : ch))
-    .join("");
+  return String(n).split("").map((ch) => (ch >= "0" && ch <= "9" ? map[Number(ch)] : ch)).join("");
 }
 
 export function sectionIdFromPath(pathname: string): string {
@@ -42,6 +38,127 @@ export function sectionIdFromPath(pathname: string): string {
   if (!seg) return "overview";
   return ADMIN_SECTIONS.some((s) => s.id === seg) ? seg : "overview";
 }
+
+// ── Mobile Drawer ──────────────────────────────────────────────
+
+function MobileDrawer({
+  open,
+  onClose,
+  section,
+  onLogout,
+}: {
+  open: boolean;
+  onClose: () => void;
+  section: string;
+  onLogout: () => void;
+}) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[70] lg:hidden" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} onClick={onClose}>
+      <div
+        className="absolute inset-y-0 left-0 flex w-[280px] flex-col"
+        style={{
+          backgroundColor: "#1A1410",
+          boxShadow: "4px 0 24px rgba(0,0,0,0.3)",
+          animation: "drawer-slide-in 250ms cubic-bezier(0.32, 0.72, 0, 1)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Brand */}
+        <div className="border-b px-5 py-5" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold"
+              style={{ backgroundColor: "rgba(214,167,122,0.15)", color: "#D6A77A" }}
+            >
+              १३
+            </div>
+            <div>
+              <p className="text-[14px] font-semibold text-white/90">OM SAI MITRA</p>
+              <p className="text-[11px] text-white/40">Mandal Admin</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3">
+          {ADMIN_SECTIONS.map((s) => {
+            const href = `/admin${s.id === "overview" ? "" : `/${s.id}`}`;
+            const active = s.id === section;
+            return (
+              <Link
+                key={s.id}
+                href={href}
+                className="mb-0.5 flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] transition-all duration-150"
+                style={{
+                  backgroundColor: active ? "rgba(255,255,255,0.08)" : "transparent",
+                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.5)",
+                  fontWeight: active ? 600 : 400,
+                }}
+              >
+                <span className="text-[16px]">{s.icon}</span>
+                <span>{s.label}</span>
+                {active && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#D6A77A" }} />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="border-t px-4 py-4" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <Link
+            href="/"
+            className="mb-2 flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-[13px] transition-colors hover:bg-white/5"
+            style={{ color: "rgba(255,255,255,0.4)" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" />
+            </svg>
+            View public site
+          </Link>
+          <button
+            onClick={onLogout}
+            className="flex w-full items-center gap-2.5 rounded-xl px-4 py-2.5 text-[13px] transition-colors hover:bg-white/5"
+            style={{ color: "rgba(255,255,255,0.4)" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes drawer-slide-in {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ── Guard ──────────────────────────────────────────────────────
 
 function Guard({ children }: { children: ReactNode }) {
   const { loading, session, isAdmin, signOut } = useAdminAuth();
@@ -100,6 +217,8 @@ function Guard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+// ── Layout ─────────────────────────────────────────────────────
+
 function Layout({ section, title, subtitle, actions, children }: {
   section: string;
   title: string;
@@ -109,31 +228,39 @@ function Layout({ section, title, subtitle, actions, children }: {
 }) {
   const { user, role, signOut } = useAdminAuth();
   const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { confirm: confirmLogout, node: confirmNode } = useConfirm({
     title: "Log out?",
     confirmLabel: "Logout",
     danger: false,
   });
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
+    setDrawerOpen(false);
     const ok = await confirmLogout("You will be signed out and return to the public website.");
     if (!ok) return;
     await signOut();
     router.replace("/");
     router.refresh();
-  };
+  }, [confirmLogout, signOut, router]);
+
+  const sectionMeta = ADMIN_SECTIONS.find((s) => s.id === section);
 
   return (
     <div className="min-h-screen lg:flex" style={{ backgroundColor: A_IVORY }}>
-      {/* Sidebar (desktop) */}
+      {/* Mobile drawer */}
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        section={section}
+        onLogout={handleLogout}
+      />
+
+      {/* Desktop sidebar */}
       <aside
         className="hidden w-[260px] shrink-0 flex-col lg:flex"
-        style={{
-          backgroundColor: "#1A1410",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-        }}
+        style={{ backgroundColor: "#1A1410", borderRight: "1px solid rgba(255,255,255,0.06)" }}
       >
-        {/* Brand */}
         <div className="px-5 pb-5 pt-6">
           <div className="flex items-center gap-3">
             <div
@@ -149,7 +276,6 @@ function Layout({ section, title, subtitle, actions, children }: {
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 space-y-0.5 px-3" aria-label="Admin sections">
           {ADMIN_SECTIONS.map((s) => {
             const active = s.id === section;
@@ -167,18 +293,12 @@ function Layout({ section, title, subtitle, actions, children }: {
               >
                 <span className="text-[13px]">{s.icon}</span>
                 <span>{s.label}</span>
-                {active && (
-                  <span
-                    className="ml-auto h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: "#D6A77A" }}
-                  />
-                )}
+                {active && <span className="ml-auto h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#D6A77A" }} />}
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer */}
         <div className="border-t px-4 py-4" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
           <Link
             href="/"
@@ -193,11 +313,39 @@ function Layout({ section, title, subtitle, actions, children }: {
         </div>
       </aside>
 
-      {/* Main content area */}
+      {/* Main content */}
       <div className="min-w-0 flex-1">
-        {/* Top bar */}
+        {/* Mobile header */}
         <header
-          className="sticky top-0 z-40"
+          className="sticky top-0 z-40 lg:hidden"
+          style={{
+            backgroundColor: "rgba(250,248,245,0.85)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderBottom: `1px solid ${A_BORDER}`,
+          }}
+        >
+          <div className="flex items-center gap-3 px-4 py-3">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-stone-100 active:scale-[0.96]"
+              aria-label="Open menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={A_INK} strokeWidth="2" strokeLinecap="round">
+                <path d="M3 12h18M3 6h18M3 18h18" />
+              </svg>
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-semibold" style={{ color: A_INK }}>
+                {title}
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* Desktop header */}
+        <header
+          className="sticky top-0 z-40 hidden lg:block"
           style={{
             backgroundColor: "rgba(250,248,245,0.85)",
             backdropFilter: "blur(12px)",
@@ -207,21 +355,14 @@ function Layout({ section, title, subtitle, actions, children }: {
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3.5">
             <div className="min-w-0">
-              <p className="truncate text-[15px] font-semibold" style={{ color: A_INK }}>
-                {title}
-              </p>
-              {subtitle && (
-                <p className="truncate text-[12px]" style={{ color: A_MUTED }}>
-                  {subtitle}
-                </p>
-              )}
+              <div className="flex items-center gap-2">
+                {sectionMeta && <span className="text-[16px]">{sectionMeta.icon}</span>}
+                <p className="truncate text-[15px] font-semibold" style={{ color: A_INK }}>{title}</p>
+              </div>
+              {subtitle && <p className="truncate text-[12px]" style={{ color: A_MUTED }}>{subtitle}</p>}
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span
-                className="hidden max-w-[180px] truncate text-[11px] sm:block"
-                style={{ color: A_MUTED }}
-                title={user?.email}
-              >
+              <span className="hidden max-w-[180px] truncate text-[11px] sm:block" style={{ color: A_MUTED }} title={user?.email}>
                 {user?.email} {role ? `· ${role}` : ""}
               </span>
               <button
@@ -233,58 +374,24 @@ function Layout({ section, title, subtitle, actions, children }: {
               </button>
             </div>
           </div>
-
-          {/* Mobile section nav */}
-          <nav
-            className="overflow-x-auto px-5 pb-2.5 lg:hidden"
-            style={{ scrollbarWidth: "none" }}
-            aria-label="Admin sections"
-          >
-            <div className="flex gap-1.5">
-              {ADMIN_SECTIONS.map((s) => {
-                const active = s.id === section;
-                return (
-                  <Link
-                    key={s.id}
-                    href={`/admin${s.id === "overview" ? "" : `/${s.id}`}`}
-                    aria-current={active ? "page" : undefined}
-                    className="flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-medium transition-all duration-150"
-                    style={{
-                      backgroundColor: active ? A_MAROON : A_SURFACE,
-                      color: active ? "#FFFFFF" : A_BODY,
-                      border: `1px solid ${active ? A_MAROON : A_BORDER}`,
-                      boxShadow: active ? "0 1px 3px rgba(124,45,18,0.2)" : "none",
-                    }}
-                  >
-                    <span>{s.icon}</span>
-                    <span>{s.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
         </header>
 
         {/* Breadcrumb */}
-        <div className="mx-auto max-w-6xl px-5 pt-4">
+        <div className="mx-auto max-w-6xl px-4 pt-3 lg:px-5">
           <p className="text-[11px] font-medium" style={{ color: A_MUTED }}>
-            <Link href="/admin" className="transition-colors hover:text-[#7C2D12]">
-              Admin
-            </Link>
+            <Link href="/admin" className="transition-colors hover:text-[#7C2D12]">Admin</Link>
             {section !== "overview" && (
               <>
                 <span className="mx-1.5 opacity-40">/</span>
-                <span style={{ color: A_BODY }}>
-                  {ADMIN_SECTIONS.find((s) => s.id === section)?.label}
-                </span>
+                <span style={{ color: A_BODY }}>{sectionMeta?.label}</span>
               </>
             )}
           </p>
         </div>
 
         {/* Page content */}
-        <main className="mx-auto max-w-6xl px-5 pb-16 pt-4">
-          {actions && <div className="mb-5 flex flex-wrap items-center gap-2">{actions}</div>}
+        <main className="mx-auto max-w-6xl px-4 pb-20 pt-3 lg:px-5 lg:pb-16">
+          {actions && <div className="mb-4 flex flex-wrap items-center gap-2">{actions}</div>}
           {children}
         </main>
       </div>

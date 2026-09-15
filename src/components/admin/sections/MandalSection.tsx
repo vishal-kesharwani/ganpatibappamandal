@@ -1,24 +1,48 @@
 "use client";
 
-/** Mandal information editor (site_settings key/value). No email fields. */
+/** Mandal information editor — grouped sections (Identity, Location, Social, Festival). */
 import { useEffect, useState } from "react";
 import { supabase, isMissingTableError } from "@/lib/supabase";
 import {
   useToast, Spinner, MissingTableNotice,
-  Field, TextInput, TextArea, PrimaryButton,
-  A_BORDER, A_MUTED,
+  Field, TextInput, TextArea, PrimaryButton, SectionHeader,
+  A_BORDER, A_INK, A_BODY, A_MUTED, A_SURFACE, A_SHADOW_SM,
 } from "@/components/admin/ui";
 
-const FIELDS = [
-  { key: "mandal_name", label: "Mandal name", multiline: false },
-  { key: "location", label: "Location", multiline: false },
-  { key: "address", label: "Full address", multiline: false },
-  { key: "about", label: "About", multiline: true },
-  { key: "mission", label: "Mission", multiline: true },
-  { key: "established_year", label: "Established year", multiline: false },
-  { key: "instagram", label: "Instagram URL", multiline: false },
-  { key: "map_url", label: "Google Maps URL", multiline: false },
-  { key: "upi_id", label: "UPI ID (donations)", multiline: false },
+const SECTIONS = [
+  {
+    title: "Identity",
+    icon: "ℹ",
+    fields: [
+      { key: "mandal_name", label: "Mandal name", multiline: false },
+      { key: "established_year", label: "Established year", multiline: false },
+      { key: "about", label: "About", multiline: true },
+      { key: "mission", label: "Mission", multiline: true },
+    ],
+  },
+  {
+    title: "Location",
+    icon: "📍",
+    fields: [
+      { key: "location", label: "Location", multiline: false },
+      { key: "address", label: "Full address", multiline: false },
+      { key: "map_url", label: "Google Maps URL", multiline: false },
+    ],
+  },
+  {
+    title: "Social",
+    icon: "📱",
+    fields: [
+      { key: "instagram", label: "Instagram URL", multiline: false },
+    ],
+  },
+  {
+    title: "Donations",
+    icon: "💰",
+    fields: [
+      { key: "upi_id", label: "UPI ID", multiline: false },
+    ],
+  },
 ];
 
 function settingToString(v: unknown): string {
@@ -51,9 +75,7 @@ export default function MandalSection() {
       }
       setLoading(false);
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -67,7 +89,8 @@ export default function MandalSection() {
       return;
     }
     setBusy(true);
-    const rows = FIELDS.map((f) => ({ key: f.key, value: (values[f.key] || "").trim() }));
+    const allFields = SECTIONS.flatMap((s) => s.fields);
+    const rows = allFields.map((f) => ({ key: f.key, value: (values[f.key] || "").trim() }));
     const { error } = await supabase.from("site_settings").upsert(rows as never);
     setBusy(false);
     push(error ? "error" : "success", error ? error.message : "Mandal information saved.");
@@ -77,30 +100,47 @@ export default function MandalSection() {
   if (missing) return <MissingTableNotice tables="site_settings" />;
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-lg bg-white p-4" style={{ border: `1px solid ${A_BORDER}` }}>
-        <div className="space-y-3">
-          {FIELDS.map((f) => (
-            <Field key={f.key} label={f.label}>
-              {f.multiline ? (
-                <TextArea
-                  rows={3}
-                  value={values[f.key] || ""}
-                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                />
-              ) : (
-                <TextInput
-                  value={values[f.key] || ""}
-                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                />
-              )}
-            </Field>
-          ))}
-          <p className="text-[11px]" style={{ color: A_MUTED }}>
-            Changes appear on the public Mandal, Location and Donation pages automatically.
-          </p>
+    <div className="space-y-4">
+      <SectionHeader
+        title="Mandal Information"
+        description="Manage your mandal details shown on the public site"
+      />
+
+      {SECTIONS.map((section) => (
+        <div
+          key={section.title}
+          className="overflow-hidden rounded-2xl"
+          style={{ backgroundColor: A_SURFACE, border: `1px solid ${A_BORDER}`, boxShadow: A_SHADOW_SM }}
+        >
+          <div className="border-b px-5 py-3.5" style={{ borderColor: A_BORDER }}>
+            <p className="text-[13px] font-semibold" style={{ color: A_INK }}>
+              {section.icon} {section.title}
+            </p>
+          </div>
+          <div className="space-y-3 p-5">
+            {section.fields.map((f) => (
+              <Field key={f.key} label={f.label}>
+                {f.multiline ? (
+                  <TextArea
+                    rows={3}
+                    value={values[f.key] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  />
+                ) : (
+                  <TextInput
+                    value={values[f.key] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  />
+                )}
+              </Field>
+            ))}
+          </div>
         </div>
-      </div>
+      ))}
+
+      <p className="text-[11px]" style={{ color: A_MUTED }}>
+        Changes appear on the public Mandal, Location and Donation pages automatically.
+      </p>
       <div>
         <PrimaryButton onClick={save} disabled={busy}>{busy ? "Saving…" : "Save mandal info"}</PrimaryButton>
       </div>
