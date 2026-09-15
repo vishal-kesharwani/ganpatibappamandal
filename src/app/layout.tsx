@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import VisitorHeartbeat from "@/components/VisitorHeartbeat";
 
 export const metadata: Metadata = {
   title: "OM SAI MITRA MANDAL | Ganpati Festival 2026",
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#7C2D12" />
       </head>
       <body className="min-h-dvh flex flex-col text-[#1C1917] antialiased">
+        <VisitorHeartbeat />
         <main className="flex-1 pb-20">{children}</main>
       </body>
     </html>

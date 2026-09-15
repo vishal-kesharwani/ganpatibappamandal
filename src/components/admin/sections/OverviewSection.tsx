@@ -60,6 +60,8 @@ export default function OverviewSection() {
   const [recent, setRecent] = useState<{ label: string; href: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [today, setToday] = useState(0);
+  const [visitors, setVisitors] = useState(0);
+  const [visitorPages, setVisitorPages] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -112,6 +114,24 @@ export default function OverviewSection() {
     return () => { cancelled = true; };
   }, []);
 
+  // Live visitor count — refreshes every 15 seconds
+  useEffect(() => {
+    let cancelled = false;
+    const fetchVisitors = async () => {
+      try {
+        const res = await fetch("/api/visitors");
+        const data = await res.json();
+        if (!cancelled) {
+          setVisitors(data.count || 0);
+          setVisitorPages(data.pages || {});
+        }
+      } catch { /* silent */ }
+    };
+    fetchVisitors();
+    const interval = setInterval(fetchVisitors, 15_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
+
   if (loading) return <Spinner label="Loading dashboard…" />;
 
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
@@ -144,6 +164,49 @@ export default function OverviewSection() {
         title={`Welcome back 👋`}
         description={today >= 1 ? `Festival Day ${today} of 7` : "Festival not active today"}
       />
+
+      {/* Live Visitors KPI */}
+      <div
+        className="overflow-hidden rounded-2xl p-5"
+        style={{
+          background: visitors > 0
+            ? "linear-gradient(135deg, #047857 0%, #065F46 100%)"
+            : "linear-gradient(135deg, #44403C 0%, #292524 100%)",
+          boxShadow: visitors > 0
+            ? "0 4px 20px rgba(4,120,87,0.3)"
+            : "0 4px 20px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-white/60">
+              Live Visitors
+            </p>
+            <p className="mt-1 text-4xl font-bold text-white tabular-nums">
+              {visitors}
+            </p>
+            <p className="mt-0.5 text-[12px] text-white/50">
+              {visitors === 0 ? "No one online right now" : visitors === 1 ? "person viewing" : "people viewing"}
+            </p>
+          </div>
+          <div className="text-5xl">
+            {visitors > 0 ? "👁" : "😴"}
+          </div>
+        </div>
+        {Object.keys(visitorPages).length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {Object.entries(visitorPages).map(([page, count]) => (
+              <span
+                key={page}
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
+                style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.8)" }}
+              >
+                {page} · {count}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Year banner */}
       <div
