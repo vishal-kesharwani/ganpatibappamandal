@@ -283,7 +283,8 @@ export default function AartiPage() {
           <div className="mt-8 text-center">
             <Link
               href="/aarti/timings"
-              className="inline-flex items-center gap-2 rounded-lg px-8 py-4 text-base font-bold text-white transition-colors bg-[#7C2D12] hover:bg-[#6B2710] shadow-lg shadow-[#7C2D12]/30"
+              style={{ backgroundColor: "#7C2D12", color: "#FFFFFF" }}
+              className="inline-flex items-center gap-2 rounded-lg px-8 py-4 text-base font-bold shadow-lg"
             >
               Aarti Timings
             </Link>
