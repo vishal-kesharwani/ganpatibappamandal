@@ -60,8 +60,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // If approved, also insert into gallery_images so it appears in public gallery
   if (status === "approved") {
+    // Fetch the request to get image_url
     const { data: req } = await supabase
       .from("gallery_requests")
       .select("*")
@@ -69,14 +69,41 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (req) {
-      await supabase.from("gallery_images").insert({
-        image_url: req.image_url,
-        caption: req.caption || `Photo by ${req.name}`,
-        category: req.category,
-        sort_order: 0,
-        published: true,
-        storage_path: null,
-      });
+      // Check if this image_url already exists in gallery_images
+      const { data: existing } = await supabase
+        .from("gallery_images")
+        .select("id")
+        .eq("image_url", req.image_url)
+        .limit(1);
+
+      if (!existing || existing.length === 0) {
+        // Only insert if not already present — prevents duplicates
+        await supabase.from("gallery_images").insert({
+          image_url: req.image_url,
+          caption: req.caption || `Photo by ${req.name}`,
+          category: req.category,
+          sort_order: 0,
+          published: true,
+          storage_path: null,
+        });
+      }
+    }
+  }
+
+  if (status === "rejected" || status === "pending") {
+    // Remove from gallery_images if it was previously approved
+    // Find the request's image_url first
+    const { data: req } = await supabase
+      .from("gallery_requests")
+      .select("image_url")
+      .eq("id", id)
+      .single();
+
+    if (req) {
+      await supabase
+        .from("gallery_images")
+        .delete()
+        .eq("image_url", req.image_url);
     }
   }
 
