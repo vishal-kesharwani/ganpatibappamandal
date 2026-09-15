@@ -159,6 +159,10 @@ export default function GallerySection() {
   };
 
   const uploadFile = async (file: File): Promise<string | null> => {
+    if (file.size > 3 * 1024 * 1024) {
+      push("error", "File too large. Maximum size is 3 MB.");
+      return null;
+    }
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "jpg";
@@ -332,7 +336,7 @@ export default function GallerySection() {
               ) : (
                 <>
                   <p className="text-[13px] font-medium" style={{ color: A_INK }}>Drop an image here</p>
-                  <p className="mt-1 text-[11px]" style={{ color: A_MUTED }}>or click below to browse</p>
+                  <p className="mt-1 text-[11px]" style={{ color: A_MUTED }}>or click below to browse · max 3 MB</p>
                   <label className="mt-3 cursor-pointer rounded-lg px-4 py-2 text-[12px] font-medium text-white transition-opacity hover:opacity-90" style={{ backgroundColor: "#7C2D12" }}>
                     Choose file
                     <input

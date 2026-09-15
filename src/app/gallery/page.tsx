@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import { Download, Share2, Upload, X, CheckCircle } from "lucide-react";
+import { Download, Share2, Upload, X, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
 import { useLiveGallery } from "@/lib/public-data";
@@ -28,9 +28,11 @@ const REQUEST_CATEGORIES = [
   { id: "other", label: "Other" },
 ];
 
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3 MB
+
 export default function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const { data: items } = useLiveGallery();
 
   // Request form state
@@ -40,11 +42,40 @@ export default function GalleryPage() {
   const [reqPreview, setReqPreview] = useState<string | null>(null);
   const [reqBusy, setReqBusy] = useState(false);
   const [reqDone, setReqDone] = useState(false);
+  const [reqError, setReqError] = useState("");
 
   const filtered =
     selectedCategory === "all"
       ? items
       : items.filter((item) => item.category === selectedCategory);
+
+  const lightboxItem = lightboxIndex !== null ? filtered[lightboxIndex] : null;
+  const hasPrev = lightboxIndex !== null && lightboxIndex > 0;
+  const hasNext = lightboxIndex !== null && lightboxIndex < filtered.length - 1;
+
+  const goPrev = useCallback(() => {
+    setLightboxIndex((i) => (i !== null && i > 0 ? i - 1 : null));
+  }, []);
+
+  const goNext = useCallback(() => {
+    setLightboxIndex((i) => (i !== null && i < filtered.length - 1 ? i + 1 : null));
+  }, [filtered.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === "ArrowRight") goNext();
+      else if (e.key === "Escape") setLightboxIndex(null);
+    };
+    document.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+    };
+  }, [lightboxIndex, goPrev, goNext]);
 
   const handleDownload = async (src: string, alt: string) => {
     try {
@@ -70,9 +101,15 @@ export default function GalleryPage() {
 
   const handleRequestSubmit = async () => {
     if (!reqForm.name.trim() || !reqFile) return;
+
+    if (reqFile.size > MAX_FILE_SIZE) {
+      setReqError("File too large. Maximum size is 3 MB.");
+      return;
+    }
+
     setReqBusy(true);
+    setReqError("");
     try {
-      // Upload to a temp path via Supabase storage (same bucket, different path)
       const { createClient } = await import("@supabase/supabase-js");
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -86,14 +123,13 @@ export default function GalleryPage() {
         .upload(path, reqFile, { contentType: reqFile.type || "image/jpeg", upsert: false });
 
       if (uploadErr) {
-        alert("Upload failed. Please try again.");
+        setReqError("Upload failed. Please try again.");
         setReqBusy(false);
         return;
       }
 
       const { data: urlData } = supabase.storage.from("gallery").getPublicUrl(path);
 
-      // Save request to DB
       const res = await fetch("/api/gallery/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,10 +145,10 @@ export default function GalleryPage() {
       if (res.ok) {
         setReqDone(true);
       } else {
-        alert("Submission failed. Please try again.");
+        setReqError("Submission failed. Please try again.");
       }
     } catch {
-      alert("Something went wrong. Please try again.");
+      setReqError("Something went wrong. Please try again.");
     }
     setReqBusy(false);
   };
@@ -150,10 +186,10 @@ export default function GalleryPage() {
 
         {/* Photo grid */}
         <div className="grid grid-cols-2 gap-2">
-          {filtered.map((item) => (
+          {filtered.map((item, idx) => (
             <button
               key={item.id}
-              onClick={() => setLightbox({ src: item.src, alt: item.alt })}
+              onClick={() => setLightboxIndex(idx)}
               className="relative aspect-square rounded-lg overflow-hidden border hover:opacity-90 transition-all"
               style={{ borderColor: "#E7E5E4" }}
             >
@@ -179,7 +215,7 @@ export default function GalleryPage() {
         {/* Request to Upload button */}
         <div className="mt-8 text-center">
           <button
-            onClick={() => { setShowRequest(true); setReqDone(false); }}
+            onClick={() => { setShowRequest(true); setReqDone(false); setReqError(""); }}
             className="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white"
             style={{ backgroundColor: "#7C2D12" }}
           >
@@ -192,50 +228,79 @@ export default function GalleryPage() {
         </div>
       </main>
 
-      {/* Lightbox with download + share */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center"
-          onClick={() => setLightbox(null)}
-        >
-          {/* Close */}
-          <button
-            className="absolute top-4 right-4 text-white/70 hover:text-white z-10"
-            onClick={() => setLightbox(null)}
-          >
-            <X size={28} />
-          </button>
-
-          {/* Image */}
-          <div className="flex-1 flex items-center justify-center w-full px-4" onClick={(e) => e.stopPropagation()}>
-            <Image
-              src={lightbox.src}
-              alt={lightbox.alt}
-              width={800}
-              height={600}
-              className="max-w-full max-h-[75vh] object-contain rounded-lg"
-              unoptimized={lightbox.src.startsWith("http")}
-            />
+      {/* Lightbox with prev/next + download + share */}
+      {lightboxItem && lightboxIndex !== null && (
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: "rgba(0,0,0,0.97)" }}>
+          {/* Top bar — counter + close */}
+          <div className="flex items-center justify-between px-4 py-3" onClick={(e) => e.stopPropagation()}>
+            <p className="text-[13px] font-medium text-white/70">
+              {lightboxIndex + 1} / {filtered.length}
+            </p>
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Close"
+            >
+              <X size={24} />
+            </button>
           </div>
 
-          {/* Action buttons */}
-          <div
-            className="w-full flex items-center justify-center gap-4 py-4 px-6"
-            onClick={(e) => e.stopPropagation()}
-          >
+          {/* Image area with prev/next */}
+          <div className="relative flex-1 flex items-center justify-center min-h-0">
+            {/* Prev button */}
+            {hasPrev && (
+              <button
+                onClick={goPrev}
+                className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-all"
+                aria-label="Previous photo"
+                style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+
+            {/* Image */}
+            <div className="px-14 flex items-center justify-center w-full h-full">
+              <Image
+                src={lightboxItem.src}
+                alt={lightboxItem.alt}
+                width={800}
+                height={600}
+                className="max-w-full max-h-full object-contain rounded-lg select-none"
+                unoptimized={lightboxItem.src.startsWith("http")}
+                draggable={false}
+              />
+            </div>
+
+            {/* Next button */}
+            {hasNext && (
+              <button
+                onClick={goNext}
+                className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-all"
+                aria-label="Next photo"
+                style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+              >
+                <ChevronRight size={24} />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom actions — Download + WhatsApp */}
+          <div className="flex items-center justify-center gap-3 px-4 py-4 safe-area-pb">
             <button
-              onClick={() => handleDownload(lightbox.src, lightbox.alt)}
-              className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={() => handleDownload(lightboxItem.src, lightboxItem.alt)}
+              className="flex items-center gap-2 rounded-xl px-5 py-3 text-[13px] font-semibold text-white transition-colors"
+              style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
             >
-              <Download size={16} />
+              <Download size={17} />
               Download
             </button>
             <button
-              onClick={() => handleWhatsAppShare(lightbox.src, lightbox.alt)}
-              className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+              onClick={() => handleWhatsAppShare(lightboxItem.src, lightboxItem.alt)}
+              className="flex items-center gap-2 rounded-xl px-5 py-3 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#25D366" }}
             >
-              <Share2 size={16} />
+              <Share2 size={17} />
               WhatsApp
             </button>
           </div>
@@ -257,7 +322,7 @@ export default function GalleryPage() {
                   Admin will review your photo and add it to the gallery. Thank you!
                 </p>
                 <button
-                  onClick={() => { setShowRequest(false); setReqDone(false); setReqForm({ name: "", phone: "", caption: "", category: "other" }); setReqFile(null); setReqPreview(null); }}
+                  onClick={() => { setShowRequest(false); setReqDone(false); setReqForm({ name: "", phone: "", caption: "", category: "other" }); setReqFile(null); setReqPreview(null); setReqError(""); }}
                   className="mt-6 rounded-lg px-6 py-2.5 text-sm font-medium text-white"
                   style={{ backgroundColor: "#7C2D12" }}
                 >
@@ -279,7 +344,7 @@ export default function GalleryPage() {
                   {/* Photo upload */}
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider font-medium mb-1" style={{ color: "#78716C" }}>
-                      Photo *
+                      Photo * (max 3 MB)
                     </label>
                     <input
                       type="file"
@@ -287,6 +352,12 @@ export default function GalleryPage() {
                       onChange={(e) => {
                         const f = e.target.files?.[0];
                         if (f) {
+                          if (f.size > MAX_FILE_SIZE) {
+                            setReqError("File too large. Maximum size is 3 MB.");
+                            e.target.value = "";
+                            return;
+                          }
+                          setReqError("");
                           setReqFile(f);
                           setReqPreview(URL.createObjectURL(f));
                         }
@@ -362,6 +433,11 @@ export default function GalleryPage() {
                       style={{ borderColor: "#D6D3D1", backgroundColor: "#FFFBF5", color: "#1C1917" }}
                     />
                   </div>
+
+                  {/* Error */}
+                  {reqError && (
+                    <p className="text-[12px] font-medium" style={{ color: "#DC2626" }}>{reqError}</p>
+                  )}
 
                   {/* Submit */}
                   <button
