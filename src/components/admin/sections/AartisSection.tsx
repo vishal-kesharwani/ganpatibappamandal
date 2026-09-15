@@ -214,11 +214,11 @@ export default function AartisSection() {
                       <Badge tone={a.published ? "green" : "gray"}>{a.published ? "Published" : "Hidden"}</Badge>
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-1.5">
-                    <GhostButton onClick={() => move(a, -1)} aria-label="Move up">↑</GhostButton>
-                    <GhostButton onClick={() => move(a, 1)} aria-label="Move down">↓</GhostButton>
+                  <div className="flex shrink-0 flex-col gap-1">
                     <GhostButton onClick={() => startEdit(a)}>Edit</GhostButton>
+                    <GhostButton onClick={() => move(a, -1)} aria-label="Move up">↑</GhostButton>
                     <DangerGhostButton onClick={() => remove(a)}>Del</DangerGhostButton>
+                    <GhostButton onClick={() => move(a, 1)} aria-label="Move down">↓</GhostButton>
                   </div>
                 </div>
               </div>
