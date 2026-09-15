@@ -1,7 +1,7 @@
 "use client";
 
 /** Gallery management — upload to Supabase Storage or attach an image URL. */
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import type { Database } from "@/lib/supabase";
 import { supabase, db } from "@/lib/supabase";
@@ -15,7 +15,116 @@ import {
 
 type Photo = Database["public"]["Tables"]["gallery_images"]["Row"];
 
+type GalleryRequest = {
+  id: string;
+  name: string;
+  phone: string | null;
+  caption: string | null;
+  category: string;
+  image_url: string;
+  status: string;
+  admin_note: string | null;
+  created_at: string;
+};
+
 const EMPTY = { image_url: "", caption: "", category: "festival", sort_order: 0, published: true };
+
+function RequestsPanel({ onApproved }: { onApproved: () => void }) {
+  const { push } = useToast();
+  const [requests, setRequests] = useState<GalleryRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch("/api/gallery/requests");
+    const data = await res.json();
+    setRequests(data.items || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const visible = filter === "all" ? requests : requests.filter((r) => r.status === filter);
+  const pendingCount = requests.filter((r) => r.status === "pending").length;
+
+  const handleAction = async (id: string, action: "approved" | "rejected") => {
+    await fetch("/api/gallery/requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status: action }),
+    });
+
+    push("success", action === "approved" ? "Photo approved and published." : "Photo rejected.");
+    load();
+    onApproved();
+  };
+
+  return (
+    <div className="rounded-lg bg-white p-3 space-y-3" style={{ border: `1px solid ${A_BORDER}` }}>
+      <div className="flex items-center gap-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: A_INK }}>
+          User Uploads
+        </h3>
+        {pendingCount > 0 && (
+          <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: "#EA580C" }}>
+            {pendingCount} pending
+          </span>
+        )}
+      </div>
+
+      <div className="flex gap-1.5">
+        {(["pending", "approved", "rejected", "all"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilter(s)}
+            className="chip"
+            data-active={filter === s}
+          >
+            {s.charAt(0).toUpperCase() + s.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <Spinner />
+      ) : visible.length === 0 ? (
+        <p className="text-xs py-4 text-center" style={{ color: A_MUTED }}>
+          No {filter === "all" ? "" : filter} requests.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {visible.map((req) => (
+            <div key={req.id} className="flex gap-3 rounded-lg p-2" style={{ border: `1px solid ${A_BORDER}` }}>
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-[#F5E5E4]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={req.image_url} alt={req.caption || "Request"} className="h-full w-full object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate" style={{ color: A_INK }}>
+                  {req.name}{req.phone ? ` · ${req.phone}` : ""}
+                </p>
+                {req.caption && <p className="text-[10px] truncate" style={{ color: A_MUTED }}>{req.caption}</p>}
+                <div className="mt-1 flex flex-wrap gap-1">
+                  <Badge tone="maroon">{req.category}</Badge>
+                  <Badge tone={req.status === "approved" ? "green" : req.status === "rejected" ? "red" : "amber"}>
+                    {req.status}
+                  </Badge>
+                </div>
+                {req.status === "pending" && (
+                  <div className="mt-1.5 flex gap-1.5">
+                    <PrimaryButton onClick={() => handleAction(req.id, "approved")}>Approve</PrimaryButton>
+                    <DangerGhostButton onClick={() => handleAction(req.id, "rejected")}>Reject</DangerGhostButton>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GallerySection() {
   const { push } = useToast();
@@ -125,6 +234,8 @@ export default function GallerySection() {
 
   return (
     <div className="space-y-3">
+      <RequestsPanel onApproved={() => table.reload()} />
+
       <div className="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3" style={{ border: `1px solid ${A_BORDER}` }}>
         <SelectInput value={catFilter} onChange={(e) => setCatFilter(e.target.value)} aria-label="Filter by category" style={{ maxWidth: 220 }}>
           <option value="all">All categories</option>
