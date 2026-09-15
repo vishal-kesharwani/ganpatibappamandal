@@ -574,29 +574,34 @@ INSERT INTO aartis (slug, title, title_devanagari, deity, category, language, ty
 चरणी ठेवितो माथा॥
 
 श्रीराम जय राम जय जय राम॥', NULL, 'Marathi Ram Aarti', 'Traditional', NULL, 'needs_verification', false, true, 24) ON CONFLICT (slug) DO UPDATE SET title=EXCLUDED.title, title_devanagari=EXCLUDED.title_devanagari, deity=EXCLUDED.deity, category=EXCLUDED.category, language=EXCLUDED.language, type=EXCLUDED.type, lyrics=EXCLUDED.lyrics, description=EXCLUDED.description, source=EXCLUDED.source, content_status=EXCLUDED.content_status, verified=EXCLUDED.verified, published=EXCLUDED.published, sort_order=EXCLUDED.sort_order;
-INSERT INTO aartis (slug, title, title_devanagari, deity, category, language, type, lyrics, transliteration, description, source, source_url, content_status, verified, published, sort_order) VALUES ('ambe-tu-hai-jagdambe-kali', 'Ambe Tu Hai Jagdambe Kali', 'अंबे तू है जगदंबे काली', 'Durga', 'devi', 'hindi', 'aarti', 'अंबे तू है जगदंबे काली।
-जय दुर्गे खप्पर वाली॥
+INSERT INTO aartis (slug, title, title_devanagari, deity, category, language, type, lyrics, transliteration, description, source, source_url, content_status, verified, published, sort_order) VALUES ('ambe-tu-hai-jagdambe-kali', 'Ambe Tu Hai Jagdambe Kali', 'अंबे तू है जगदंबे काली', 'Durga', 'devi', 'hindi', 'aarti', 'अम्बे तू है जगदम्बे काली,
+जय दुर्गे खप्पर वाली,
+तेरे ही गुण गावें भारती,
+ओ मैया हम सब उतारे तेरी आरती।
 
-तेरे ही गुण गावें भारती।
-ओ मैया हम सब उतारें तेरी आरती॥
+तेरे भक्त जनो पर माता भीर पड़ी है भारी।
+दानव दल पर टूट पडो माँ करके सिंह सवारी॥
+सौ-सौ सिहों से बलशाली, है अष्ट भुजाओं वाली,
+दुष्टों को तू ही ललकारती।
+ओ मैया हम सब उतारे तेरी आरती।
 
-अंबे तू है जगदंबे काली॥
+माँ-बेटे का है इस जग मे बडा ही निर्मल नाता।
+पूत-कपूत सुने है पर ना माता सुनी कुमाता॥
+सब पे करूणा दर्शाने वाली, अमृत बरसाने वाली,
+दुखियों के दुखडे निवारती।
+ओ मैया हम सब उतारे तेरी आरती।
 
-तेरे जगत की माया।
-तू ही है माँ भवानी॥
+नहीं मांगते धन और दौलत, न चांदी न सोना।
+हम तो मांगें तेरे चरणों में छोटा सा कोना॥
+सबकी बिगड़ी बनाने वाली, लाज बचाने वाली,
+सतियों के सत को सवांरती।
+ओ मैया हम सब उतारे तेरी आरती।
 
-तू ही है जग की माता।
-तू ही है पालनहारी॥
-
-अंबे तू है जगदंबे काली॥
-
-दुर्गे रूप निराला।
-तू शेर पे सवार॥
-
-दुष्टों का संहार करे।
-भक्तों का करे उद्धार॥
-
-अंबे तू है जगदंबे काली॥', NULL, 'Popular Jagdambe/Durga Aarti', 'Traditional', NULL, 'needs_verification', false, true, 25) ON CONFLICT (slug) DO UPDATE SET title=EXCLUDED.title, title_devanagari=EXCLUDED.title_devanagari, deity=EXCLUDED.deity, category=EXCLUDED.category, language=EXCLUDED.language, type=EXCLUDED.type, lyrics=EXCLUDED.lyrics, description=EXCLUDED.description, source=EXCLUDED.source, content_status=EXCLUDED.content_status, verified=EXCLUDED.verified, published=EXCLUDED.published, sort_order=EXCLUDED.sort_order;
+चरण शरण में खड़े तुम्हारी, ले पूजा की थाली।
+वरद हस्त सर पर रख दो माँ संकट हरने वाली॥
+माँ भर दो भक्ति रस प्याली, अष्ट भुजाओं वाली,
+भक्तों के कारज तू ही सारती।
+ओ मैया हम सब उतारे तेरी आरती।', NULL, 'Popular Jagdambe/Durga Aarti', 'Traditional', NULL, 'verified', true, true, 25) ON CONFLICT (slug) DO UPDATE SET title=EXCLUDED.title, title_devanagari=EXCLUDED.title_devanagari, deity=EXCLUDED.deity, category=EXCLUDED.category, language=EXCLUDED.language, type=EXCLUDED.type, lyrics=EXCLUDED.lyrics, description=EXCLUDED.description, source=EXCLUDED.source, content_status=EXCLUDED.content_status, verified=EXCLUDED.verified, published=EXCLUDED.published, sort_order=EXCLUDED.sort_order;
 INSERT INTO aartis (slug, title, title_devanagari, deity, category, language, type, lyrics, transliteration, description, source, source_url, content_status, verified, published, sort_order) VALUES ('mahalakshmi-aarti', 'Mahalakshmi Aarti', 'महालक्ष्मी आरती', 'Lakshmi', 'devi', 'marathi', 'aarti', 'जय देवी जय देवी जय महालक्ष्मी।
 वससी व्यापकरूपे तू स्थूलसूक्ष्मी॥
 
