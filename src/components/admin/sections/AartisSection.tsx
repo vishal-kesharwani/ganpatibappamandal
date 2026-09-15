@@ -206,7 +206,14 @@ export default function AartisSection({ initialEditSlug }: { initialEditSlug?: s
       </div>
 
       {filtered.length === 0 && (
-        <EmptyState title="No aartis match" hint="Adjust filters or add a new aarti. Existing verified content is never touched unless you edit it." />
+        <EmptyState
+          title={table.rows.length === 0 ? "No aartis in database" : "No aartis match"}
+          hint={
+            table.rows.length === 0
+              ? "If the public site shows aartis but admin shows zero, the admin RLS migration has not run: execute supabase-admin-platform.sql in the Supabase SQL Editor, then reload. If the table itself is empty, run supabase-aartis-seed.sql first."
+              : "Adjust filters or add a new aarti. Existing verified content is never touched unless you edit it."
+          }
+        />
       )}
 
       {/* Desktop table / mobile stacked cards */}
