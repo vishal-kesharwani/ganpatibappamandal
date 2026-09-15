@@ -68,14 +68,13 @@ a {
 }
 
 a:hover {
-  color: #7C2D12;
+  opacity: 0.85;
 }
 
 button {
   cursor: pointer;
   border: none;
   background: none;
-  font: inherit;
 }
 
 /* Typography Scale */
