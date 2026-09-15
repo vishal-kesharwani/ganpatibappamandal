@@ -424,7 +424,7 @@ export default function AartiDetailPage() {
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => shareText(getShareText())}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#1C1917] text-[#FAF7F2] hover:bg-[#292524] transition-colors text-sm font-medium border border-[#1C1917]/30 shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#1C1917] text-white hover:bg-[#292524] transition-colors text-sm font-bold shadow-md"
           >
             <svg
               className="w-4 h-4"
@@ -443,7 +443,7 @@ export default function AartiDetailPage() {
           </button>
           <button
             onClick={() => shareToWhatsApp(getShareText())}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#25D366] text-white hover:bg-[#20C45A] transition-colors text-sm font-bold shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#25D366] text-white hover:bg-[#20C45A] transition-colors text-sm font-bold shadow-md"
           >
             <svg
               className="w-4 h-4"
