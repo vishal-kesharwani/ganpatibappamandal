@@ -224,11 +224,11 @@ export default function AartiDetailPage() {
       </div>
 
       {/* Sticky Header - Maroon */}
-      <div className="sticky top-0 z-40 bg-[#7C2D12] border-b border-[#7C2D12]/80">
+      <div style={{ backgroundColor: "#7C2D12" }} className="sticky top-0 z-40 border-b border-[#7C2D12]/80">
         <div className="max-w-lg mx-auto flex items-center justify-between px-4 py-3">
           <Link
             href="/aarti"
-            className="text-[#FAF7F2] text-sm flex items-center gap-1 hover:text-[#F5EDE0] transition-colors"
+            className="text-sm flex items-center gap-1 aarti-back-link"
           >
             <svg
               className="w-4 h-4"
@@ -245,7 +245,7 @@ export default function AartiDetailPage() {
             </svg>
             Back
           </Link>
-          <h1 className="text-sm font-bold font-gotu text-white truncate max-w-[200px]">
+          <h1 style={{ color: "#FFFFFF" }} className="text-sm font-bold font-gotu truncate max-w-[200px]">
             {getTitle()}
           </h1>
           <div className="w-16" />
@@ -454,8 +454,8 @@ export default function AartiDetailPage() {
                 setIsReading(true);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              style={{ backgroundColor: "#7C2D12", color: "#FFFFFF" }}
-              className="w-full py-4 rounded-lg font-bold font-gotu text-lg shadow-xl"
+              style={{ backgroundColor: "#7C2D12", color: "#FFFFFF", fontSize: "18px", fontWeight: 700 }}
+              className="w-full py-4 rounded-lg font-gotu shadow-xl"
             >
               Start Reading
             </button>

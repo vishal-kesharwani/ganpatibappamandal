@@ -530,6 +530,18 @@ button {
   outline: none;
 }
 
+/* Aarti back link — force white on maroon header */
+.aarti-back-link,
+.aarti-back-link svg {
+  color: #FAF7F2 !important;
+}
+
+.aarti-back-link:hover,
+.aarti-back-link:hover svg {
+  color: #FFFFFF !important;
+  opacity: 0.85;
+}
+
 /* Reduced Motion */
 
 @media (prefers-reduced-motion: reduce) {
