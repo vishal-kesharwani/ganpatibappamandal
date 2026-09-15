@@ -66,35 +66,38 @@ export default function AdminAartiBar({ slug, aartiId }: { slug: string; aartiId
   };
 
   return (
-    <div className="border-b border-[#D6D3D1] bg-[#FFF8EE]">
+    <div style={{ backgroundColor: "#FFF8EE", borderBottom: "1px solid #D6D3D1" }}>
       <div className="mx-auto flex max-w-lg flex-wrap items-center gap-2 px-4 py-2.5">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#7C2D12]">
+        <span style={{ color: "#7C2D12", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Admin
         </span>
         <Link
           href={`/admin/aartis?edit=${encodeURIComponent(slug)}`}
-          className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white shadow-sm"
-          style={{ backgroundColor: "#7C2D12" }}
+          style={{ backgroundColor: "#7C2D12", color: "#FFFFFF" }}
+          className="rounded-lg px-3 py-1.5 text-[11px] font-bold shadow-sm"
         >
           Edit
         </Link>
         <button
           onClick={duplicate}
           disabled={busy}
-          className="rounded-lg border border-[#D6D3D1] bg-white px-3 py-1.5 text-[11px] font-bold text-[#44403C] shadow-sm disabled:opacity-50"
+          style={{ backgroundColor: "#FFFFFF", color: "#44403C", border: "1px solid #D6D3D1" }}
+          className="rounded-lg px-3 py-1.5 text-[11px] font-bold shadow-sm disabled:opacity-50"
         >
           Duplicate
         </button>
         <button
           onClick={remove}
           disabled={busy}
-          className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-3 py-1.5 text-[11px] font-bold text-[#B91C1C] shadow-sm disabled:opacity-50"
+          style={{ backgroundColor: "#FEF2F2", color: "#B91C1C", border: "1px solid #FECACA" }}
+          className="rounded-lg px-3 py-1.5 text-[11px] font-bold shadow-sm disabled:opacity-50"
         >
           Delete
         </button>
         <Link
           href="/admin/events"
-          className="rounded-lg border border-[#D6D3D1] bg-white px-3 py-1.5 text-[11px] font-bold text-[#44403C] shadow-sm"
+          style={{ backgroundColor: "#FFFFFF", color: "#44403C", border: "1px solid #D6D3D1" }}
+          className="rounded-lg px-3 py-1.5 text-[11px] font-bold shadow-sm"
         >
           Manage timing
         </Link>
