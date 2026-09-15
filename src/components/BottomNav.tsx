@@ -2,13 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, CalendarDays, BookOpen, Users, MoreHorizontal } from "lucide-react";
+import { Home, CalendarDays, BookOpen, Image, MoreHorizontal } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: Home },
   { href: "/festival", label: "Festival", icon: CalendarDays },
   { href: "/aarti", label: "Aarti", icon: BookOpen },
-  { href: "/events", label: "Events", icon: Users },
+  { href: "/gallery", label: "Gallery", icon: Image },
   { href: "/more", label: "More", icon: MoreHorizontal },
 ];
 

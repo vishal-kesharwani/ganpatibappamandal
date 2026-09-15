@@ -422,7 +422,7 @@ function TodayTracker({
 
         {sorted.length > 5 && (
           <Link
-            href="/events"
+            href="/festival"
             className="mt-3 block border-t border-[#E7E5E4] pt-3 text-center text-xs text-[#EA580C]"
           >
             View all {sorted.length} events →

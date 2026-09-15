@@ -9,7 +9,6 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/festival", label: "Festival Diary" },
   { href: "/aarti", label: "Aarti Library" },
-  { href: "/events", label: "Events & Programs" },
   { href: "/gallery", label: "Photo Gallery" },
   { href: "/info", label: "Ganpati Information" },
   { href: "/visarjan", label: "Visarjan" },

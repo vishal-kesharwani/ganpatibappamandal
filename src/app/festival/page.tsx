@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FESTIVAL_CONFIG } from "@/data/festival";
+import { Clock, MapPin, Calendar, Share2 } from "lucide-react";
 import { useLiveDays, useLiveEvents, categoryLabel } from "@/lib/public-data";
-import { getCurrentDay, formatTime12 } from "@/lib/utils";
+import { getCurrentDay, formatTime12, generateCalendarUrl } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
 
@@ -28,6 +28,23 @@ const DAY_ABBREV_MARATHI: Record<string, string> = {
   रविवार: "रवि",
 };
 
+const CATEGORY_COLORS: Record<string, string> = {
+  aarti: "#7C2D12",
+  puja: "#9A3412",
+  prasad: "#7C2D12",
+  cultural: "#EA580C",
+  children: "#B45309",
+  bhajan: "#9A3412",
+  dindi: "#C2410C",
+  "dhol-tasha": "#D97706",
+  competition: "#A16207",
+  social: "#57534E",
+  meeting: "#57534E",
+  visarjan: "#7C2D12",
+  darshan: "#B45309",
+  other: "#57534E",
+};
+
 export default function FestivalPage() {
   const currentDay = getCurrentDay();
   const { data: days } = useLiveDays();
@@ -35,9 +52,20 @@ export default function FestivalPage() {
   const [selectedDay, setSelectedDay] = useState(
     currentDay >= 1 && currentDay <= 7 ? currentDay : 1
   );
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const dayData = days.find((d) => d.day === selectedDay);
   const schedule = events.filter((e) => e.day === selectedDay);
+
+  const availableCategories = useMemo(() => {
+    const cats = new Set(schedule.map((e) => e.category));
+    return Array.from(cats);
+  }, [schedule]);
+
+  const filteredSchedule = useMemo(() => {
+    if (!selectedCategory) return schedule;
+    return schedule.filter((e) => e.category === selectedCategory);
+  }, [schedule, selectedCategory]);
 
   if (!dayData) return null;
 
@@ -49,7 +77,7 @@ export default function FestivalPage() {
       <Header />
 
       <main className="mx-auto max-w-lg px-4 pb-24 pt-6">
-        <section className="mb-8 text-center">
+        <section className="mb-6 text-center">
           <h1
             className="font-gotu text-2xl font-bold tracking-wide"
             style={{ color: "#1C1917" }}
@@ -64,7 +92,8 @@ export default function FestivalPage() {
           </p>
         </section>
 
-        <section className="mb-8 -mx-4 px-4">
+        {/* Day tabs with dates */}
+        <section className="mb-5 -mx-4 px-4">
           <div
             className="flex gap-2 overflow-x-auto pb-2"
             style={{ scrollbarWidth: "none" }}
@@ -77,7 +106,10 @@ export default function FestivalPage() {
               return (
                 <button
                   key={d.day}
-                  onClick={() => setSelectedDay(d.day)}
+                  onClick={() => {
+                    setSelectedDay(d.day);
+                    setSelectedCategory(null);
+                  }}
                   aria-pressed={isSelected}
                   className="flex flex-col items-center rounded-lg px-3 py-2 text-xs transition-colors shrink-0"
                   style={{
@@ -113,8 +145,9 @@ export default function FestivalPage() {
           </div>
         </section>
 
+        {/* Day meta card */}
         <section
-          className="mb-6 rounded-lg p-5"
+          className="mb-5 rounded-lg p-5"
           style={{
             backgroundColor: "#FFFFFF",
             border: "1px solid #E7E5E4",
@@ -154,10 +187,7 @@ export default function FestivalPage() {
               {isToday && (
                 <span
                   className="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                  style={{
-                    backgroundColor: "#EA580C",
-                    color: "#FFFFFF",
-                  }}
+                  style={{ backgroundColor: "#EA580C", color: "#FFFFFF" }}
                 >
                   Today
                 </span>
@@ -165,10 +195,7 @@ export default function FestivalPage() {
               {isVisarjan && (
                 <span
                   className="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                  style={{
-                    backgroundColor: "#7C2D12",
-                    color: "#FFFFFF",
-                  }}
+                  style={{ backgroundColor: "#7C2D12", color: "#FFFFFF" }}
                 >
                   Visarjan Day
                 </span>
@@ -177,6 +204,7 @@ export default function FestivalPage() {
           </div>
         </section>
 
+        {/* Theme */}
         {dayData.theme && (
           <section className="mb-4">
             <div className="bg-white border border-[#E7E5E4] rounded-lg p-4">
@@ -186,80 +214,146 @@ export default function FestivalPage() {
           </section>
         )}
 
+        {/* Description */}
         {dayData.description && (
-          <section className="mb-6">
+          <section className="mb-5">
             <p className="text-sm leading-relaxed" style={{ color: "#57534E" }}>
               {dayData.description}
             </p>
           </section>
         )}
 
-        {schedule.length > 0 && (
-          <section className="mb-8">
-            <h2
-              className="mb-4 text-xs font-semibold uppercase tracking-widest"
-              style={{ color: "#A8A29E" }}
-            >
-              Schedule
-            </h2>
-            <div
-              className="divide-y"
-              style={{ borderColor: "#E7E5E4" }}
-            >
-              {schedule.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-start gap-3 py-3"
-                  style={{ borderBottom: "1px solid #E7E5E4" }}
+        {/* Category filters */}
+        {availableCategories.length > 0 && (
+          <div className="mb-5">
+            <p className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: "#A8A29E" }}>
+              Filter by category
+            </p>
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2" style={{ scrollbarWidth: "none" }}>
+              <button
+                onClick={() => setSelectedCategory(null)}
+                aria-pressed={!selectedCategory}
+                className="chip"
+                data-active={!selectedCategory}
+              >
+                All
+              </button>
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                  aria-pressed={selectedCategory === cat}
+                  className="chip"
+                  data-active={selectedCategory === cat}
                 >
+                  {categoryLabel(cat)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Schedule */}
+        {filteredSchedule.length > 0 ? (
+          <section className="mb-8">
+            <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: "#A8A29E" }}>
+              Schedule ({filteredSchedule.length})
+            </p>
+            <div className="space-y-3">
+              {filteredSchedule.map((event) => {
+                const catColor = CATEGORY_COLORS[event.category] || "#7C2D12";
+                return (
                   <div
-                    className="shrink-0 pt-0.5 font-mono text-xs"
-                    style={{ color: "#57534E", width: "52px" }}
+                    key={event.id}
+                    className="rounded-lg border p-4"
+                    style={{ backgroundColor: "#FFFFFF", borderColor: "#E7E5E4" }}
                   >
-                    {formatTime12(event.time)}
-                  </div>
-                  <div
-                    className="w-px self-stretch"
-                    style={{ backgroundColor: "#E7E5E4" }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    {event.aartiSlug ? (
-                      <Link
-                        href={`/aarti/${event.aartiSlug}`}
-                        className="font-gotu text-sm font-medium hover:text-[#7C2D12] hover:underline"
-                        style={{ color: "#1C1917" }}
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} style={{ color: "#A8A29E" }} />
+                        <span className="text-sm font-semibold" style={{ color: "#7C2D12" }}>
+                          {formatTime12(event.time)}
+                          {event.timeEnd && ` - ${formatTime12(event.timeEnd)}`}
+                        </span>
+                      </div>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        style={{ backgroundColor: `${catColor}15`, color: catColor }}
                       >
+                        {categoryLabel(event.category)}
+                      </span>
+                    </div>
+
+                    {event.aartiSlug ? (
+                      <Link href={`/aarti/${event.aartiSlug}`} className="font-gotu text-base font-semibold hover:underline" style={{ color: "#1C1917" }}>
                         {event.titleMarathi}
                       </Link>
                     ) : (
-                      <p
-                        className="font-gotu text-sm font-medium"
-                        style={{ color: "#1C1917" }}
-                      >
+                      <h3 className="font-gotu text-base font-semibold" style={{ color: "#1C1917" }}>
                         {event.titleMarathi}
-                      </p>
+                      </h3>
                     )}
-                    <span
-                      className="text-[10px]"
-                      style={{ color: "#A8A29E" }}
-                    >
-                      {categoryLabel(event.category)}
-                    </span>
+                    <p className="mt-0.5 text-xs" style={{ color: "#A8A29E" }}>
+                      {event.title}
+                    </p>
+
                     {event.description && (
-                      <p
-                        className="mt-1 text-xs leading-relaxed"
-                        style={{ color: "#78716C" }}
-                      >
+                      <p className="mt-2 text-sm leading-relaxed" style={{ color: "#57534E" }}>
                         {event.description}
                       </p>
                     )}
+
+                    {event.location && (
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <MapPin size={12} style={{ color: "#A8A29E" }} />
+                        <span className="text-xs" style={{ color: "#A8A29E" }}>
+                          {event.location}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="mt-3 flex items-center gap-2 border-t pt-3" style={{ borderColor: "#E7E5E4" }}>
+                      <a
+                        href={generateCalendarUrl(
+                          `${event.titleMarathi} - OM SAI MITRA MANDAL`,
+                          dayData.date || "",
+                          event.time,
+                          event.description
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                        style={{ backgroundColor: "#EA580C10", color: "#EA580C" }}
+                      >
+                        <Calendar size={12} />
+                        Add to Calendar
+                      </a>
+                      <button
+                        onClick={() => {
+                          const text = `${event.titleMarathi} - OM SAI MITRA MANDAL`;
+                          window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+                        }}
+                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                        style={{ backgroundColor: "#25D36610", color: "#25D366" }}
+                      >
+                        <Share2 size={12} />
+                        Share
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
+        ) : (
+          <div className="rounded-lg border p-6 text-center mb-8" style={{ backgroundColor: "#FFFFFF", borderColor: "#E7E5E4" }}>
+            <p className="text-sm" style={{ color: "#A8A29E" }}>
+              {schedule.length === 0 ? "No events for this day yet." : "No events in this category."}
+            </p>
+          </div>
         )}
 
+        {/* Share day */}
         <button
           onClick={() => {
             if (navigator.share) {
@@ -271,7 +365,7 @@ export default function FestivalPage() {
             } else {
               window.open(
                 `https://wa.me/?text=${encodeURIComponent(
-                  `Day ${dayData.day} - ${dayData.dateMarathi}\n${dayData.dayOfWeek}\n${FESTIVAL_CONFIG.name}`
+                  `Day ${dayData.day} - ${dayData.dateMarathi}\n${dayData.dayOfWeek}\nGanpati Mahotsav 2026`
                 )}`,
                 "_blank"
               );
