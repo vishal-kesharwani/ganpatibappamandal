@@ -50,9 +50,14 @@ function RequestsPanel({ onApproved }: { onApproved: () => void }) {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
 
   const handleAction = async (id: string, action: "approved" | "rejected") => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
     await fetch("/api/gallery/requests", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ id, status: action }),
     });
     push("success", action === "approved" ? "Photo approved and published." : "Photo rejected.");

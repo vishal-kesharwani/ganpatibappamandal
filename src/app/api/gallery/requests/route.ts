@@ -3,7 +3,19 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+function getClient(request: NextRequest) {
+  // Use the user's access token if available — allows RLS to pass for admin ops
+  const authHeader = request.headers.get("authorization");
+  const token = authHeader?.replace("Bearer ", "");
+  if (token) {
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+  }
+  // Fallback to anon client (for GET which doesn't need auth)
+  return createClient(supabaseUrl, supabaseAnonKey);
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -13,6 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Name and image are required" }, { status: 400 });
   }
 
+  const supabase = getClient(request);
   const { error } = await supabase.from("gallery_requests").insert({
     name: name.trim(),
     phone: phone?.trim() || null,
@@ -30,6 +43,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
   const { data, error } = await supabase
     .from("gallery_requests")
     .select("*")
@@ -50,6 +64,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "id and status required" }, { status: 400 });
   }
 
+  const supabase = getClient(request);
+
   // Update the request status
   const { error } = await supabase
     .from("gallery_requests")
@@ -61,7 +77,6 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (status === "approved") {
-    // Fetch the request to get image_url
     const { data: req } = await supabase
       .from("gallery_requests")
       .select("*")
@@ -77,7 +92,6 @@ export async function PATCH(request: NextRequest) {
         .limit(1);
 
       if (!existing || existing.length === 0) {
-        // Only insert if not already present — prevents duplicates
         await supabase.from("gallery_images").insert({
           image_url: req.image_url,
           caption: req.caption || `Photo by ${req.name}`,
@@ -91,8 +105,6 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (status === "rejected" || status === "pending") {
-    // Remove from gallery_images if it was previously approved
-    // Find the request's image_url first
     const { data: req } = await supabase
       .from("gallery_requests")
       .select("image_url")
