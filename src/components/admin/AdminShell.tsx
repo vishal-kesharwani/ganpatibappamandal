@@ -24,6 +24,15 @@ export const ADMIN_SECTIONS = [
   { id: "settings", label: "Settings", href: "/admin/settings" },
 ];
 
+/** Latin digits → Marathi (Devanagari) digits, e.g. 13 → १३. */
+export function toMarathiDigits(n: number): string {
+  const map = ["०", "१", "२", "३", "४", "५", "६", "७", "८", "९"];
+  return String(n)
+    .split("")
+    .map((ch) => (ch >= "0" && ch <= "9" ? map[Number(ch)] : ch))
+    .join("");
+}
+
 export function sectionIdFromPath(pathname: string): string {
   const seg = pathname.replace(/\/admin\/?/, "").split("/")[0].split("?")[0];
   if (!seg) return "overview";
@@ -121,6 +130,9 @@ function Layout({ section, title, subtitle, actions, children }: {
             Mandal Admin
           </p>
           <p className="mt-1 text-sm font-bold text-white">OM SAI MITRA MANDAL</p>
+          <p className="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ backgroundColor: "#D6A77A", color: "#2A1510" }}>
+            {toMarathiDigits(new Date().getFullYear() - 2014 + 1)}वे वर्ष
+          </p>
         </div>
         <nav className="flex-1 space-y-0.5 px-3" aria-label="Admin sections">
           {ADMIN_SECTIONS.map((s) => {

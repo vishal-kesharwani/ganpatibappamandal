@@ -8,6 +8,7 @@ import { minutesOf } from "@/lib/public-data";
 import {
   Spinner, Badge, A_BORDER, A_INK, A_BODY, A_MUTED, A_MAROON,
 } from "@/components/admin/ui";
+import { toMarathiDigits } from "@/components/admin/AdminShell";
 
 interface Counts {
   aartis: number | null;
@@ -129,8 +130,19 @@ export default function OverviewSection() {
     (e) => e.time_end && nowMin >= minutesOf(e.time) && nowMin <= minutesOf(e.time_end)
   ) || null;
 
+  const mandalYear = new Date().getFullYear() - 2014 + 1;
+
   return (
     <div className="space-y-4">
+      <div className="rounded-lg p-4 text-center" style={{ backgroundColor: "#2A1510" }}>
+        <p className="font-gotu text-lg font-bold" style={{ color: "#FFF8EE" }}>
+          🪔 {toMarathiDigits(mandalYear)}वे वर्ष · {mandalYear}th Year
+        </p>
+        <p className="mt-0.5 text-[11px]" style={{ color: "#D6A77A" }}>
+          OM SAI MITRA MANDAL · Est. 2014 · Triveni Sangam Apartment, Kaneri
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-5">
         {cards.map((c) => (
           <Link
