@@ -9,7 +9,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminAuthProvider, useAdminAuth } from "@/lib/admin-auth";
-import { ToastProvider, Spinner, A_IVORY, A_MAROON, A_BORDER, A_INK, A_BODY, A_MUTED } from "@/components/admin/ui";
+import { ToastProvider, Spinner, useConfirm, A_IVORY, A_MAROON, A_BORDER, A_INK, A_BODY, A_MUTED } from "@/components/admin/ui";
 
 export const ADMIN_SECTIONS = [
   { id: "overview", label: "Overview", href: "/admin" },
@@ -98,8 +98,15 @@ function Layout({ section, title, subtitle, actions, children }: {
 }) {
   const { user, role, signOut } = useAdminAuth();
   const router = useRouter();
+  const { confirm: confirmLogout, node: confirmNode } = useConfirm({
+    title: "Log out?",
+    confirmLabel: "Logout",
+    danger: false,
+  });
 
   const handleLogout = async () => {
+    const ok = await confirmLogout("You will be signed out and return to the public website.");
+    if (!ok) return;
     await signOut();
     router.replace("/");
     router.refresh();
@@ -220,6 +227,7 @@ function Layout({ section, title, subtitle, actions, children }: {
           {children}
         </main>
       </div>
+      {confirmNode}
     </div>
   );
 }

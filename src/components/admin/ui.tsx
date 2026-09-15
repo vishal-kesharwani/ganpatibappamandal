@@ -79,8 +79,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 // ---------- confirm dialog ----------
 
-export function useConfirm() {
+export function useConfirm(opts?: {
+  title?: string;
+  confirmLabel?: string;
+  danger?: boolean;
+}) {
   const [pending, setPending] = useState<{ message: string; resolve: (v: boolean) => void } | null>(null);
+  const title = opts?.title ?? "Please confirm";
+  const confirmLabel = opts?.confirmLabel ?? "Delete";
+  const danger = opts?.danger ?? true;
 
   const confirm = useCallback(
     (message: string) =>
@@ -94,7 +101,7 @@ export function useConfirm() {
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-xs rounded-lg bg-white p-5 shadow-xl" style={{ border: `1px solid ${A_BORDER}` }}>
         <p className="text-sm font-semibold" style={{ color: A_INK }}>
-          Please confirm
+          {title}
         </p>
         <p className="mt-1 text-sm" style={{ color: A_BODY }}>
           {pending.message}
@@ -116,9 +123,9 @@ export function useConfirm() {
               setPending(null);
             }}
             className="rounded-md px-4 py-2 text-xs font-semibold text-white"
-            style={{ backgroundColor: "#DC2626" }}
+            style={{ backgroundColor: danger ? "#DC2626" : A_MAROON }}
           >
-            Delete
+            {confirmLabel}
           </button>
         </div>
       </div>

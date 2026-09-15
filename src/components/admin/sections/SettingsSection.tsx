@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAdminAuth } from "@/lib/admin-auth";
 import {
-  useToast, Spinner, Badge,
+  useToast, useConfirm, Spinner, Badge,
   Field, TextInput, PrimaryButton, GhostButton,
   A_BORDER, A_INK, A_BODY, A_MUTED,
 } from "@/components/admin/ui";
@@ -24,6 +24,11 @@ const TABLES = [
 
 export default function SettingsSection() {
   const { push } = useToast();
+  const { confirm: confirmLogout, node: confirmNode } = useConfirm({
+    title: "Log out?",
+    confirmLabel: "Logout",
+    danger: false,
+  });
   const { user, role, signOut, refresh } = useAdminAuth();
   const [health, setHealth] = useState<Record<string, boolean | null>>({});
   const [checking, setChecking] = useState(true);
@@ -87,6 +92,8 @@ export default function SettingsSection() {
           <GhostButton onClick={refresh}>Refresh session</GhostButton>
           <GhostButton
             onClick={async () => {
+              const ok = await confirmLogout("You will be signed out and return to the public website.");
+              if (!ok) return;
               await signOut();
               window.location.href = "/";
             }}
@@ -142,6 +149,7 @@ export default function SettingsSection() {
             </code>
           </p>
         )}
+      {confirmNode}
       </div>
     </div>
   );
